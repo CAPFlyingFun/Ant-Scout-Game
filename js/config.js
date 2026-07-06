@@ -3,7 +3,7 @@
    ============================================================ */
 
 // app version (shown next to the menu title). Bump on each release.
-const APP_VERSION = 'v0.4.0';
+const APP_VERSION = 'v0.4.1';
 
 // world grid
 const CELL = 30;              // world px per cell (chunky, zoomed-in)
@@ -46,6 +46,23 @@ const ENEMY_TYPES = {
     r: 12,                 // body radius (bigger than the ant's 9)
     bodyCol: '#2b2b30', legCol: '#17171b', eyeCol: '#c0392b',
   },
+};
+
+// NPC worker ants — ambient wanderers on the surface (appearance only for now).
+// Movement is a correlated random walk (persistent heading + noise + stop-and-go),
+// the model real ants follow. Architected so a future 'forage' behavior can steer
+// them toward food (seek nearest item) without changing the pipeline.
+const NPC_ANTS = {
+  count: 12,
+  r: 5,                     // smaller than the player ant (r 9)
+  speed: 1.0,               // base walk speed
+  turnJitter: 0.13,         // per-step heading noise (radians)
+  reorientEvery: [0.4, 1.5],// seconds between sharper reorientations
+  reorientAmt: 1.1,         // radians magnitude of a reorientation
+  pauseChance: 0.005,       // per-frame chance to briefly stop
+  pauseDur: [0.3, 1.3],     // pause length range (seconds)
+  homeNear: 0.008, homeFar: 0.05, homeRange: 950,  // gentle pull toward the colony (stronger past homeRange px)
+  bodyCol: '#7a3a1e', legCol: '#3a1b0e',            // worker tint (distinct from the reddish player)
 };
 
 const COMBAT = {

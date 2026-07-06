@@ -21,6 +21,7 @@ const SurfaceScene = {
   items: [],                      // collectible food & water
   enemies: [],                    // spiders (Phase 4)
   enemyRespawnT: 0,
+  npcAnts: [],                    // ambient wander ants (appearance)
 
   build() {
     this.worldW = 3600; this.worldH = 2400;
@@ -63,6 +64,15 @@ const SurfaceScene = {
     this.enemies = []; this.enemyRespawnT = 0;
     const ec = SURFACE_THEME.enemies;
     for (let i = 0; i < ec.count; i++) { const p = this.spiderSpawnPos(0); this.enemies.push(spawnEnemy(ec.type, p.x, p.y)); }
+
+    // --- ambient NPC worker ants — scattered, some near the colony ---
+    this.npcAnts = [];
+    for (let i = 0; i < NPC_ANTS.count; i++) {
+      const near = i < NPC_ANTS.count * 0.4;   // a few linger near the anthill, the rest roam
+      const x = near ? this.hill.x + (Math.random() - 0.5) * 400 : 60 + Math.random() * (this.worldW - 120);
+      const y = near ? this.hill.y + (Math.random() - 0.5) * 400 : 60 + Math.random() * (this.worldH - 120);
+      this.npcAnts.push(spawnNpcAnt(clamp(x, 40, this.worldW - 40), clamp(y, 40, this.worldH - 40)));
+    }
   },
 
   // a valid spawn: inside bounds, clear of the anthill safe zone, and (optionally)
@@ -99,6 +109,9 @@ const SurfaceScene = {
     });
     // drop items marked noRespawn are removed once collected (never come back)
     if (this.items.some(i => i.gone)) this.items = this.items.filter(i => !i.gone);
+
+    // ambient NPC ants wander (appearance only — no collecting yet)
+    updateNpcAnts(this.npcAnts, dt, { home: { x: this.hill.x, y: this.hill.y }, bounds: { w: this.worldW, h: this.worldH } });
 
     // combat: spider AI + the ant's bite (DIG button = BITE here)
     const ec = SURFACE_THEME.enemies;
@@ -190,6 +203,7 @@ function drawSurface(s) {
   ctx.fillStyle = '#0a0705';
   ctx.beginPath(); ctx.ellipse(hx, hy, r * 0.34, r * 0.26, 0, 0, 7); ctx.fill();
 
+  drawNpcAnts(s.npcAnts);   // ambient worker ants
   drawEnemies(s.enemies);   // spiders on the ground, below the ant
   drawAnt();
 
