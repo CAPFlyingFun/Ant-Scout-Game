@@ -34,15 +34,18 @@ const UndergroundScene = {
   },
 
   enter(from) {
-    // spawn at the entrance shaft near home, facing down, ready to dig
-    ant.x = home.x; ant.y = (surfaceRow - 1.2) * CELL;
+    // spawn at the entrance shaft near home, facing down, ready to dig.
+    // GROUND_Y (below) is the surface line the ant rests on — keep in sync.
+    ant.x = home.x; ant.y = (surfaceRow - 0.2) * CELL;
     ant.vx = ant.vy = 0; ant.angle = Math.PI / 2;
   },
 
   resolveCollision() {
-    // CEILING: the ant walks the surface line but can NEVER rise into the sky.
-    // Leaving the surface is done only via the door — up is not a direction here.
-    const ceil = (surfaceRow - 1.2) * CELL;
+    // CEILING: the ant walks the surface/ground line but can NEVER rise into the
+    // sky above it. Leaving the surface is done only via the door — up is not a
+    // direction here. (surfaceRow - 0.2) keeps the ant at ground level, not
+    // floating a cell above it. Keep in sync with the spawn Y in enter().
+    const ceil = (surfaceRow - 0.2) * CELL;
     if (ant.y < ceil) { ant.y = ceil; if (ant.vy < 0) ant.vy = 0; }
     // circle vs beveled dirt cells
     const r = ant.r;
