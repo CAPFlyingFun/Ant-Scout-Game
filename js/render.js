@@ -345,12 +345,14 @@ function drawUI() {
 
   // DIG / GRAB only exist in scenes that support digging (underground).
   if (scene && scene.canDig) {
-    ctx.globalAlpha = input.dig ? 1 : 0.72;
-    ctx.fillStyle = input.dig ? 'rgba(240,180,60,.9)' : 'rgba(60,42,20,.5)';
+    const auto = autoDig;                                     // locked-on auto-dig (double-tap)
+    ctx.globalAlpha = (input.dig || auto) ? 1 : 0.72;
+    ctx.fillStyle = auto ? 'rgba(80,190,80,.92)' : (input.dig ? 'rgba(240,180,60,.9)' : 'rgba(60,42,20,.5)');
     ctx.beginPath(); ctx.arc(ui.digX, ui.digY, ui.digR, 0, 7); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,240,200,.5)'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = input.dig ? '#4a2c00' : '#ffdf9a'; ctx.font = `700 ${Math.round(ui.digR * 0.42)}px -apple-system,sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('DIG', ui.digX, ui.digY);
+    ctx.strokeStyle = auto ? 'rgba(210,255,210,.75)' : 'rgba(255,240,200,.5)'; ctx.lineWidth = auto ? 3 : 2; ctx.stroke();
+    ctx.fillStyle = auto ? '#08240a' : (input.dig ? '#4a2c00' : '#ffdf9a');
+    ctx.font = `800 ${Math.round(ui.digR * (auto ? 0.32 : 0.42))}px -apple-system,sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(auto ? 'AUTO' : 'DIG', ui.digX, ui.digY);
 
     ctx.globalAlpha = 0.72;
     ctx.fillStyle = ant.carry ? 'rgba(90,200,255,.5)' : 'rgba(40,50,60,.5)';

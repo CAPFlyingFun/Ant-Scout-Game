@@ -41,6 +41,11 @@ let joy = { active: false, baseX: 0, baseY: 0, kx: 0, ky: 0, R: 60, id: -1 };
 let joyRest = { x: 0, y: 0 };
 let ui = null;
 
+// auto-dig: double-tap DIG to lock digging ON so you can steer hands-free
+let autoDig = false;
+let autoDigUnlocked = true;   // Phase 5 will gate this (e.g. unlock after N digs); true = available now
+let lastDigTap = 0;           // performance.now() of the last DIG press, for double-tap detection
+
 // particles + screen shake
 const parts = [], sparks = [], dust = [];
 let shake = 0, shakeX = 0, shakeY = 0;

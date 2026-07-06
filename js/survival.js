@@ -20,6 +20,7 @@ function damage(n, cause) { stats.hp = clamp(stats.hp - n, 0, stats.hpMax); if (
 function killAnt(cause) {
   if (stats.dead) return;
   stats.dead = true; stats.deathCause = cause;
+  autoDig = false;            // stop auto-dig on death
   gameScreen = 'dead';        // sim freezes (the shared update gate treats non-'playing' as paused)
   showDeath(cause);
 }

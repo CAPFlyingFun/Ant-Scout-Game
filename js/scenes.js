@@ -23,7 +23,7 @@ function gotoScene(id) {
   const from = scene ? scene.id : null;
   scene = Scenes[id];
   if (!scene.built) { scene.build(); scene.built = true; }   // build ONCE — world state persists between visits
-  digTarget = null; digProgress = 0;                          // clear any stale dig highlight when switching rooms
+  digTarget = null; digProgress = 0; autoDig = false;         // clear stale dig highlight + auto-dig on room switch
   scene.enter(from);                                          // reposition the ant at this scene's entry point
   cam.x = ant.x; cam.y = ant.y;                               // snap camera — no glide between rooms
 }
@@ -66,8 +66,8 @@ function applyMovement(dt) {
 function update(dt) {
   t += dt;
 
-  // input: dig is recomputed each frame from held pointers
-  input.dig = false;
+  // input: dig is recomputed each frame — held pointers OR locked auto-dig (dig scenes only)
+  input.dig = !!(autoDig && scene && scene.canDig);
   for (const [id, role] of pointers) { if (role === 'dig') input.dig = true; }
   readKeyboard();
 
