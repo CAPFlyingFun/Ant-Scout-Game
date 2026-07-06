@@ -3,22 +3,13 @@
    (event listeners are wired up in main.js)
    ============================================================ */
 
-function uiLayout() {
-  const pad = Math.max(70, Math.min(W, H) * 0.16);
-  joy.R = Math.max(52, Math.min(W, H) * 0.11);
-  // keep controls clear of side notches (landscape) and the home indicator (bottom)
-  const bottom = H - pad - safeBottom;
-  joyRest.x = pad + safeLeft; joyRest.y = bottom;
-  return {
-    digX: W - pad - safeRight, digY: bottom, digR: joy.R * 0.92,
-    carryX: W - pad - safeRight - joy.R * 1.7, carryY: bottom + joy.R * 0.35, carryR: joy.R * 0.62,
-  };
-}
+// uiLayout() lives in controls.js now (it resolves the customizable layout).
 
 function hit(x, y, bx, by, r) { return (x - bx) ** 2 + (y - by) ** 2 <= r * r; }
 function inRect(x, y, R) { return R && x >= R.x && x <= R.x + R.w && y >= R.y && y <= R.y + R.h; }
 
 function onDown(e) {
+  if (gameScreen === 'editing') { editorDown(e); e.preventDefault(); return; }   // drag controls in edit mode
   for (const p of (e.changedTouches ? e.changedTouches : [e])) {
     const id = p.identifier !== undefined ? p.identifier : 'mouse';
     const x = p.clientX, y = p.clientY;
@@ -37,7 +28,7 @@ function onDown(e) {
       pointers.set(id, 'dig'); input.dig = true;              // holding still digs manually
     }
     else if (scene && scene.canDig && hit(x, y, ui.carryX, ui.carryY, ui.carryR)) { pointers.set(id, 'carry'); input.carryEdge = true; }
-    else if (x < W * 0.5 && !joy.active) {            // left half -> floating joystick
+    else if (!joy.active && joyZoneHit(x, y)) {       // joystick side (follows its anchor) -> floating stick
       joy.active = true; joy.id = id; joy.baseX = x; joy.baseY = y; joy.kx = x; joy.ky = y; pointers.set(id, 'joy');
     } else { pointers.set(id, 'none'); }
   }
@@ -45,6 +36,7 @@ function onDown(e) {
 }
 
 function onMove(e) {
+  if (gameScreen === 'editing') { editorMove(e); e.preventDefault(); return; }
   for (const p of (e.changedTouches ? e.changedTouches : [e])) {
     const id = p.identifier !== undefined ? p.identifier : 'mouse';
     if (pointers.get(id) === 'joy') {
@@ -59,6 +51,7 @@ function onMove(e) {
 }
 
 function onUp(e) {
+  if (gameScreen === 'editing') { editorUp(e); e.preventDefault(); return; }
   for (const p of (e.changedTouches ? e.changedTouches : [e])) {
     const id = p.identifier !== undefined ? p.identifier : 'mouse';
     const role = pointers.get(id);

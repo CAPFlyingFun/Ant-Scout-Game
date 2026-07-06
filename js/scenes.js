@@ -103,6 +103,8 @@ function draw() {
     if (scene && scene.drawHUD) scene.drawHUD();              // scene-specific HUD (underground: objective + depth)
     if (intro > 0) drawIntro();
     if (won) drawWin();
+  } else if (gameScreen === 'editing') {
+    drawControlsEditor();                                     // draggable control ghosts for customization
   }
   drawActionButton();                                         // contextual door button (manages its own visibility)
 }
@@ -117,9 +119,10 @@ function drawActionButton() {
   if (p) {
     actionTarget = p.to;
     if (btn.textContent !== p.label) btn.textContent = p.label;
-    // sit just above the on-screen controls, horizontally centred, thumb-reachable
-    btn.style.left = (W / 2) + 'px';
-    btn.style.top = (joyRest.y - joy.R - 30) + 'px';
+    const L = uiLayout();                                     // customizable position + size
+    btn.style.left = L.actX + 'px';
+    btn.style.top = L.actY + 'px';
+    btn.style.transform = `translate(-50%,-50%) scale(${L.actS})`;
     btn.classList.remove('hidden');
   } else {
     actionTarget = null;

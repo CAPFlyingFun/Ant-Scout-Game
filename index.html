@@ -71,7 +71,19 @@
       </div>
       <button id="btnRandom" class="btn">🎲 Randomize</button>
     </div>
+    <button id="btnCustomize" class="btn">🎮 Customize controls</button>
     <button id="btnBack" class="btn primary">✓ Done</button>
+  </div>
+</div>
+
+<!-- control-customization toolbar (shown in edit mode) -->
+<div id="editctrl" class="edit-bar hidden">
+  <div class="edit-line"><b>🎮 Customize controls</b> · <span id="editOrient">Portrait</span></div>
+  <div class="edit-line">Drag any control. Selected: <b id="editSel">Move</b></div>
+  <div class="edit-line"><span>Size</span><input id="editSize" type="range" min="0.6" max="1.6" step="0.05" value="1"></div>
+  <div class="edit-line">
+    <button id="btnEditReset" class="edit-btn">↺ Reset</button>
+    <button id="btnEditDone" class="edit-btn primary">✓ Done</button>
   </div>
 </div>
 
@@ -95,6 +107,7 @@
 <script src="js/world.js"></script>
 <script src="js/weather.js"></script>
 <script src="js/input.js"></script>
+<script src="js/controls.js"></script>
 <script src="js/update.js"></script>
 <script src="js/render.js"></script>
 <script src="js/scenes.js"></script>

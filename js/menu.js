@@ -11,10 +11,12 @@ function showScreen(s) {
   $('menu').classList.toggle('hidden', s !== 'menu');
   $('settings').classList.toggle('hidden', s !== 'settings');
   $('btnPause').classList.toggle('hidden', s !== 'playing');
+  const ec = $('editctrl'); if (ec) ec.classList.toggle('hidden', s !== 'editing');   // control-customize toolbar
   const act = $('btnAction'); if (act && s !== 'playing') act.classList.add('hidden');   // door button only in-game
   if (typeof hideDeath === 'function') hideDeath();          // never leave the death overlay up on a live screen
   if (s === 'settings') refreshSettingsUI();
   if (s === 'menu') updateMenuText();
+  if (s === 'editing') syncEditUI();
 }
 function openSettings() { prevScreen = (gameScreen === 'playing') ? 'playing' : 'menu'; showScreen('settings'); }
 
@@ -48,6 +50,12 @@ function wireMenu() {
   // death overlay buttons
   $('btnRespawn').onclick  = () => { hideDeath(); resetStats(); newGame(); showScreen('playing'); };
   $('btnDeathMenu').onclick = () => { hideDeath(); resetStats(); showScreen('menu'); };
+
+  // control customization (drag/resize editor)
+  $('btnCustomize').onclick = () => startEditControls();
+  $('btnEditDone').onclick  = () => showScreen('settings');
+  $('btnEditReset').onclick = () => { resetControlLayout(currentOrient()); syncEditUI(); };
+  $('editSize').oninput     = (e) => setEditSize(e.target.value);
 
   document.querySelectorAll('#segMode .seg-btn').forEach(b => b.onclick = () => {
     env.mode = b.dataset.mode; saveEnv();

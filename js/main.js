@@ -8,7 +8,7 @@ canvas.addEventListener('touchmove', onMove, { passive: false });
 canvas.addEventListener('touchend', onUp, { passive: false });
 canvas.addEventListener('touchcancel', onUp, { passive: false });
 canvas.addEventListener('mousedown', onDown);
-window.addEventListener('mousemove', e => { if (pointers.size) onMove(e); });
+window.addEventListener('mousemove', e => { if (pointers.size || gameScreen === 'editing') onMove(e); });
 window.addEventListener('mouseup', onUp);
 
 // win-screen "Play again" tap
@@ -31,6 +31,7 @@ window.addEventListener('resize', resize);
 
 // boot
 resize();
+loadControlLayout();                  // restore any custom on-screen control layout
 initEnvironment();                    // decide starting weather (live / manual / offline) from saved settings
 registerScene(UndergroundScene);      // register every scene with the manager…
 registerScene(SurfaceScene);          // …adding a future scene is just one more line here

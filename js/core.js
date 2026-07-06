@@ -22,6 +22,8 @@ function resize() {
     safeRight  = parseFloat(cs.paddingRight)  || 0;
     safeBottom = parseFloat(cs.paddingBottom) || 0;
   }
+  // if rotating while customizing controls, refresh the edit toolbar for the new orientation
+  if (gameScreen === 'editing' && typeof syncEditUI === 'function') syncEditUI();
 }
 
 // grid queries

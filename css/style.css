@@ -89,3 +89,19 @@ canvas {
   box-shadow: 0 6px 18px rgba(0, 0, 0, .45); cursor: pointer; white-space: nowrap;
 }
 .action-btn:active { transform: translate(-50%, -50%) scale(.96); }
+
+/* control-customization toolbar (top, translucent; controls drag on the canvas below) */
+.edit-bar {
+  position: fixed; z-index: 11; left: 0; right: 0;
+  top: 0; padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+  background: rgba(12, 10, 8, .82); backdrop-filter: blur(3px);
+  color: #f3e8d8; text-align: center; border-bottom: 1px solid rgba(255, 220, 160, .18);
+}
+.edit-line { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 4px 0; font-size: 13px; }
+.edit-line input[type=range] { flex: 1 1 auto; max-width: 220px; }
+.edit-btn {
+  border: 0; border-radius: 10px; padding: 9px 18px; font-size: 15px; font-weight: 700;
+  background: rgba(255, 255, 255, .10); color: #f3e8d8; cursor: pointer;
+}
+.edit-btn.primary { background: #e0a44a; color: #3a2400; }
+.edit-btn:active { transform: scale(.97); }
