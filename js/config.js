@@ -2,6 +2,9 @@
    config.js — constants & pure helpers (loaded first)
    ============================================================ */
 
+// app version (shown next to the menu title). Bump on each release.
+const APP_VERSION = 'v0.0.7';
+
 // world grid
 const CELL = 30;              // world px per cell (chunky, zoomed-in)
 const COLS = 70, ROWS = 120;

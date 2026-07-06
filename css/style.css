@@ -57,6 +57,7 @@ canvas {
 }
 .title { font-size: 30px; font-weight: 800; }
 .title.small { font-size: 22px; margin-bottom: 6px; }
+.ver { font-size: 13px; font-weight: 600; color: #b9a68c; vertical-align: middle; letter-spacing: .02em; }
 .subtitle { color: #cdbfa8; margin: 2px 0 18px; }
 .label { text-align: left; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #b9a68c; margin: 16px 4px 6px; }
 .btn {

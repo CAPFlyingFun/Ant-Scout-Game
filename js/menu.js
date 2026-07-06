@@ -36,6 +36,7 @@ function updateMenuText() {
 }
 
 function wireMenu() {
+  const ver = $('ver'); if (ver) ver.textContent = APP_VERSION;
   $('btnPlay').onclick     = () => { resetGame(); showScreen('playing'); };
   $('btnSettings').onclick = openSettings;
   $('btnPause').onclick    = openSettings;
