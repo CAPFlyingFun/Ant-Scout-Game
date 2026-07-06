@@ -102,7 +102,10 @@ function drawGrass(gsy) {
   }
 }
 
-function draw() {
+// The underground scene's full world render (called by UndergroundScene.draw).
+// Shared chrome (flash, HUD, action button) is layered on top by the shared
+// draw() in scenes.js.
+function drawUnderground() {
   ctx.fillStyle = '#0a0808'; ctx.fillRect(0, 0, W, H);          // dark base for underground
 
   const surfScreenY = w2sY(surfaceRow * CELL);
@@ -198,17 +201,6 @@ function draw() {
   const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.72);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.5)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
-
-  // lightning flash
-  if (weather.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${weather.flash * 0.5})`; ctx.fillRect(0, 0, W, H); }
-
-  // Interface only renders in-game; sky/grass/world/ant above stay drawing as the menu backdrop.
-  if (gameScreen === 'playing') {
-    drawUI();
-    drawHUD();
-    if (intro > 0) drawIntro();
-    if (won) drawWin();
-  }
 }
 
 function drawHome() {
@@ -277,38 +269,31 @@ function drawUI() {
   ctx.fillStyle = 'rgba(255,236,210,.85)'; ctx.beginPath(); ctx.arc(kx, ky, joy.R * 0.42, 0, 7); ctx.fill();
   ctx.globalAlpha = 1;
 
-  ctx.globalAlpha = input.dig ? 1 : 0.72;
-  ctx.fillStyle = input.dig ? 'rgba(240,180,60,.9)' : 'rgba(60,42,20,.5)';
-  ctx.beginPath(); ctx.arc(ui.digX, ui.digY, ui.digR, 0, 7); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,240,200,.5)'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.fillStyle = input.dig ? '#4a2c00' : '#ffdf9a'; ctx.font = `700 ${Math.round(ui.digR * 0.42)}px -apple-system,sans-serif`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('DIG', ui.digX, ui.digY);
+  // DIG / GRAB only exist in scenes that support digging (underground).
+  if (scene && scene.canDig) {
+    ctx.globalAlpha = input.dig ? 1 : 0.72;
+    ctx.fillStyle = input.dig ? 'rgba(240,180,60,.9)' : 'rgba(60,42,20,.5)';
+    ctx.beginPath(); ctx.arc(ui.digX, ui.digY, ui.digR, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,240,200,.5)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = input.dig ? '#4a2c00' : '#ffdf9a'; ctx.font = `700 ${Math.round(ui.digR * 0.42)}px -apple-system,sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('DIG', ui.digX, ui.digY);
 
-  ctx.globalAlpha = 0.72;
-  ctx.fillStyle = ant.carry ? 'rgba(90,200,255,.5)' : 'rgba(40,50,60,.5)';
-  ctx.beginPath(); ctx.arc(ui.carryX, ui.carryY, ui.carryR, 0, 7); ctx.fill();
-  ctx.strokeStyle = 'rgba(220,240,255,.45)'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.fillStyle = '#dff0ff'; ctx.font = `700 ${Math.round(ui.carryR * 0.34)}px -apple-system,sans-serif`;
-  ctx.fillText(ant.carry ? 'DROP' : 'GRAB', ui.carryX, ui.carryY);
-  ctx.globalAlpha = 1; ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = ant.carry ? 'rgba(90,200,255,.5)' : 'rgba(40,50,60,.5)';
+    ctx.beginPath(); ctx.arc(ui.carryX, ui.carryY, ui.carryR, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(220,240,255,.45)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#dff0ff'; ctx.font = `700 ${Math.round(ui.carryR * 0.34)}px -apple-system,sans-serif`;
+    ctx.fillText(ant.carry ? 'DROP' : 'GRAB', ui.carryX, ui.carryY);
+    ctx.globalAlpha = 1;
+  }
+  ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
 }
 
-function drawHUD() {
-  ctx.textBaseline = 'alphabetic';
-  ctx.font = '700 15px -apple-system,sans-serif';
-  const obj = treasure.home ? 'Treasure secured'
-            : treasure.found ? (ant.carry === treasure ? 'Carry the gem up to the entrance ↑' : 'Grab the gem, then carry it home')
-            : 'Objective: dig down and find the buried gem';
-  // Own row, below the ☰ button + depth pill, so it never collides with the
-  // depth readout (portrait) or the menu button (landscape notch side).
-  const ox = 10 + safeLeft, oy = safeTop + 52;
-  ctx.fillStyle = 'rgba(10,8,6,.5)'; roundRect(ox, oy, ctx.measureText(obj).width + 22, 30, 8); ctx.fill();
-  ctx.fillStyle = '#ffe9c8'; ctx.fillText(obj, ox + 11, oy + 20);
-
-  drawWeatherChip();
-
+// Shared transient message banner (weather notices, offline notes, win text).
+function drawBanner() {
   if (banner && banner.t > 0) {
     banner.t -= 1 / 60;
+    ctx.textBaseline = 'alphabetic';
     ctx.globalAlpha = Math.min(1, banner.t * 2);
     ctx.font = '700 18px -apple-system,sans-serif';
     const bw = ctx.measureText(banner.text).width + 34;
@@ -318,8 +303,6 @@ function drawHUD() {
     ctx.globalAlpha = 1;
     if (banner.t <= 0 && banner.text.indexOf('home') < 0) banner = null;
   }
-
-  drawDepthMeter();
 }
 
 function drawWeatherChip() {

@@ -11,6 +11,7 @@ function showScreen(s) {
   $('menu').classList.toggle('hidden', s !== 'menu');
   $('settings').classList.toggle('hidden', s !== 'settings');
   $('btnPause').classList.toggle('hidden', s !== 'playing');
+  const act = $('btnAction'); if (act && s !== 'playing') act.classList.add('hidden');   // door button only in-game
   if (s === 'settings') refreshSettingsUI();
   if (s === 'menu') updateMenuText();
 }
@@ -37,10 +38,11 @@ function updateMenuText() {
 
 function wireMenu() {
   const ver = $('ver'); if (ver) ver.textContent = APP_VERSION;
-  $('btnPlay').onclick     = () => { resetGame(); showScreen('playing'); };
+  $('btnPlay').onclick     = () => { newGame(); showScreen('playing'); };   // fresh worlds, start underground
   $('btnSettings').onclick = openSettings;
   $('btnPause').onclick    = openSettings;
   $('btnBack').onclick     = () => showScreen(prevScreen);
+  const act = $('btnAction'); if (act) act.onclick = () => { if (actionTarget) gotoScene(actionTarget); };  // door
 
   document.querySelectorAll('#segMode .seg-btn').forEach(b => b.onclick = () => {
     env.mode = b.dataset.mode; saveEnv();

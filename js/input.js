@@ -25,8 +25,8 @@ function onDown(e) {
     ui = uiLayout();
     if (inRect(x, y, depthPill)) { unitIx = (unitIx + 1) % UNITS.length; pointers.set(id, 'ui'); }
     else if (inRect(x, y, weather.chip)) { requestWeather(); pointers.set(id, 'ui'); }
-    else if (hit(x, y, ui.digX, ui.digY, ui.digR)) { pointers.set(id, 'dig'); input.dig = true; }
-    else if (hit(x, y, ui.carryX, ui.carryY, ui.carryR)) { pointers.set(id, 'carry'); input.carryEdge = true; }
+    else if (scene && scene.canDig && hit(x, y, ui.digX, ui.digY, ui.digR)) { pointers.set(id, 'dig'); input.dig = true; }
+    else if (scene && scene.canDig && hit(x, y, ui.carryX, ui.carryY, ui.carryR)) { pointers.set(id, 'carry'); input.carryEdge = true; }
     else if (x < W * 0.5 && !joy.active) {            // left half -> floating joystick
       joy.active = true; joy.id = id; joy.baseX = x; joy.baseY = y; joy.kx = x; joy.ky = y; pointers.set(id, 'joy');
     } else { pointers.set(id, 'none'); }

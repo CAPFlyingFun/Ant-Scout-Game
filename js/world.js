@@ -49,11 +49,6 @@ function genWorld() {
   }
 }
 
-function resetGame() {
-  genWorld();
-  ant.x = home.x; ant.y = (surfaceRow - 1.2) * CELL; ant.vx = ant.vy = 0; ant.angle = Math.PI / 2;
-  ant.carry = null; ant.hasGem = false;
-  cam.x = ant.x; cam.y = ant.y; won = false; intro = 1;
-  digTarget = null; digProgress = 0; shake = 0; maxDepthMM = 0;
-  parts.length = 0; sparks.length = 0; dust.length = 0;
-}
+// (resetGame removed — the scene manager owns fresh-start logic now:
+//  UndergroundScene.build() generates the world, .enter() places the ant, and
+//  newGame() in scenes.js resets shared flags/particles.)

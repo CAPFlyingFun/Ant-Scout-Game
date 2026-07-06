@@ -80,3 +80,12 @@ canvas {
   z-index: 9; width: 38px; height: 38px; border: 0; border-radius: 10px;
   background: rgba(10, 8, 6, .55); color: #ffe1a6; font-size: 18px; cursor: pointer;
 }
+
+/* contextual door button — positioned each frame by drawActionButton() */
+.action-btn {
+  position: fixed; z-index: 9; transform: translate(-50%, -50%);
+  padding: 12px 22px; border: 0; border-radius: 999px;
+  background: #e0a44a; color: #3a2400; font-size: 16px; font-weight: 800;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45); cursor: pointer; white-space: nowrap;
+}
+.action-btn:active { transform: translate(-50%, -50%) scale(.96); }

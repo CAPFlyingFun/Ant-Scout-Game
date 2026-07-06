@@ -76,8 +76,9 @@ function updateCamera() {
   const ty = ant.y + ant.vy * lead;
   cam.x += (tx - cam.x) * 0.12;
   cam.y += (ty - cam.y) * 0.12;
-  if (WORLD_W > W) cam.x = clamp(cam.x, W / 2, WORLD_W - W / 2);
-  if (WORLD_H > H) cam.y = clamp(cam.y, H / 2, WORLD_H - H / 2);
+  const ww = scene ? scene.worldW : WORLD_W, wh = scene ? scene.worldH : WORLD_H;
+  if (ww > W) cam.x = clamp(cam.x, W / 2, ww - W / 2);
+  if (wh > H) cam.y = clamp(cam.y, H / 2, wh - H / 2);
 }
 
 // world -> screen (includes shake offset)

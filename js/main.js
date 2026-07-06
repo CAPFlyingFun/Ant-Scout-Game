@@ -15,7 +15,7 @@ window.addEventListener('mouseup', onUp);
 canvas.addEventListener('pointerdown', e => {
   if (won && winBtn) {
     const x = e.clientX, y = e.clientY;
-    if (x >= winBtn.bx && x <= winBtn.bx + winBtn.bw && y >= winBtn.by && y <= winBtn.by + winBtn.bh) resetGame();
+    if (x >= winBtn.bx && x <= winBtn.bx + winBtn.bw && y >= winBtn.by && y <= winBtn.by + winBtn.bh) newGame();
   }
 });
 
@@ -23,7 +23,7 @@ canvas.addEventListener('pointerdown', e => {
 window.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(e.key.toLowerCase())) e.preventDefault();
-  if (e.key === 'Enter' && won) resetGame();
+  if (e.key === 'Enter' && won) newGame();
 });
 window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
@@ -31,8 +31,10 @@ window.addEventListener('resize', resize);
 
 // boot
 resize();
-initEnvironment();       // decide starting weather (live / manual / offline) from saved settings
-resetGame();             // build the world so it's a live backdrop behind the menu
+initEnvironment();                    // decide starting weather (live / manual / offline) from saved settings
+registerScene(UndergroundScene);      // register every scene with the manager…
+registerScene(SurfaceScene);          // …adding a future scene is just one more line here
+newGame();                            // build the starting world so it's a live backdrop behind the menu
 wireMenu();
 showScreen('menu');
 
