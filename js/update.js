@@ -150,26 +150,57 @@ function decayFx() {
   else { shakeX = shakeY = 0; }
 }
 
+// Push the ant (a circle) out of one beveled cell polygon and kill the
+// velocity that drove it into the surface — so it slides along diagonal walls
+// instead of catching on them.
+function resolveCirclePoly(poly, r) {
+  const px = ant.x, py = ant.y, n = poly.length;
+  if (n < 3) return;
+  // nearest point on the polygon boundary
+  let bestD2 = Infinity, bx = 0, by = 0;
+  for (let i = 0; i < n; i++) {
+    const a = poly[i], b = poly[(i + 1) % n];
+    const ex = b[0] - a[0], ey = b[1] - a[1];
+    const L2 = ex * ex + ey * ey;
+    let tt = L2 > 1e-9 ? ((px - a[0]) * ex + (py - a[1]) * ey) / L2 : 0;
+    tt = tt < 0 ? 0 : tt > 1 ? 1 : tt;
+    const qx = a[0] + ex * tt, qy = a[1] + ey * tt;
+    const d2 = (px - qx) * (px - qx) + (py - qy) * (py - qy);
+    if (d2 < bestD2) { bestD2 = d2; bx = qx; by = qy; }
+  }
+  // inside test: for a convex polygon every edge cross-product shares one sign
+  let sign = 0, inside = true;
+  for (let i = 0; i < n; i++) {
+    const a = poly[i], b = poly[(i + 1) % n];
+    const cr = (b[0] - a[0]) * (py - a[1]) - (b[1] - a[1]) * (px - a[0]);
+    if (cr > 1e-9) { if (sign < 0) { inside = false; break; } sign = 1; }
+    else if (cr < -1e-9) { if (sign > 0) { inside = false; break; } sign = -1; }
+  }
+  const dist = Math.sqrt(bestD2);
+  if (inside) {
+    // centre is inside — shove it out through the nearest wall by r
+    let nx = bx - px, ny = by - py, nl = Math.hypot(nx, ny);
+    if (nl < 1e-6) { nx = 0; ny = -1; nl = 1; }
+    nx /= nl; ny /= nl;
+    ant.x = bx + nx * r; ant.y = by + ny * r;
+    const vn = ant.vx * nx + ant.vy * ny; if (vn < 0) { ant.vx -= vn * nx; ant.vy -= vn * ny; }
+  } else if (dist < r) {
+    let nx = px - bx, ny = py - by, nl = Math.hypot(nx, ny);
+    if (nl < 1e-6) { nx = 0; ny = -1; nl = 1; }
+    nx /= nl; ny /= nl;
+    const push = r - dist;
+    ant.x += nx * push; ant.y += ny * push;
+    const vn = ant.vx * nx + ant.vy * ny; if (vn < 0) { ant.vx -= vn * nx; ant.vy -= vn * ny; }
+  }
+}
+
 function resolveCollision() {
   const r = ant.r;
   for (let iter = 0; iter < 2; iter++) {
     const cx0 = cellOfX(ant.x - r), cx1 = cellOfX(ant.x + r), cy0 = cellOfY(ant.y - r), cy1 = cellOfY(ant.y + r);
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
-      if (!isSolid(cx, cy)) continue;
-      const rx = cx * CELL, ry = cy * CELL;
-      const nx = clamp(ant.x, rx, rx + CELL), ny = clamp(ant.y, ry, ry + CELL);
-      let dx = ant.x - nx, dy = ant.y - ny, d2 = dx * dx + dy * dy;
-      if (d2 < r * r) {
-        if (d2 > 0.0001) {
-          const d = Math.sqrt(d2), push = r - d; ant.x += dx / d * push; ant.y += dy / d * push;
-          const vn = (ant.vx * dx + ant.vy * dy) / d2; if (vn < 0) { ant.vx -= vn * dx; ant.vy -= vn * dy; }
-        } else {
-          const left = ant.x - rx, right = rx + CELL - ant.x, top = ant.y - ry, bot = ry + CELL - ant.y;
-          const m = Math.min(left, right, top, bot);
-          if (m === left) ant.x = rx - r; else if (m === right) ant.x = rx + CELL + r;
-          else if (m === top) ant.y = ry - r; else ant.y = ry + CELL + r;
-        }
-      }
+      if (!inBounds(cx, cy) || !isSolid(cx, cy)) continue;   // world border handled by the clamp in update()
+      resolveCirclePoly(cellShape(cx, cy), r);
     }
   }
 }

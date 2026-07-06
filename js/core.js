@@ -19,6 +19,45 @@ const isSolid  = (cx, cy) => (!inBounds(cx, cy) ? true : grid[idx(cx, cy)] === 1
 const cellOfX  = px => Math.floor(px / CELL);
 const cellOfY  = py => Math.floor(py / CELL);
 
+// Beveled outline of a solid cell (world coords). A convex corner — where the
+// two orthogonally-adjacent cells are BOTH open — is chamfered so tunnels read
+// as smooth diagonals instead of a blocky staircase. A single beveled corner
+// cuts the square clean in half (a triangle); a cell with several open sides
+// uses a half chamfer so the shape never degenerates. Straight walls stay
+// square. Used by BOTH the renderer and the collision solver so look == feel.
+function cellShape(cx, cy) {
+  const x0 = cx * CELL, y0 = cy * CELL, x1 = x0 + CELL, y1 = y0 + CELL;
+  const oL = !isSolid(cx - 1, cy), oR = !isSolid(cx + 1, cy);
+  const oU = !isSolid(cx, cy - 1), oD = !isSolid(cx, cy + 1);
+  const bTL = oL && oU, bTR = oR && oU, bBR = oR && oD, bBL = oL && oD;
+  const b = (bTL + bTR + bBR + bBL) === 1 ? CELL : CELL * 0.5;   // full triangle vs half chamfer
+  const p = [];
+  const add = (x, y) => { const n = p.length; if (n === 0 || p[n - 1][0] !== x || p[n - 1][1] !== y) p.push([x, y]); };
+  if (bTL) { add(x0, y0 + b); add(x0 + b, y0); } else add(x0, y0);   // top-left
+  if (bTR) { add(x1 - b, y0); add(x1, y0 + b); } else add(x1, y0);   // top-right
+  if (bBR) { add(x1, y1 - b); add(x1 - b, y1); } else add(x1, y1);   // bottom-right
+  if (bBL) { add(x0 + b, y1); add(x0, y1 - b); } else add(x0, y1);   // bottom-left
+  const n = p.length;
+  if (n > 1 && p[0][0] === p[n - 1][0] && p[0][1] === p[n - 1][1]) p.pop();
+  return p;
+}
+
+// Trace a cell's beveled outline as a canvas path in SCREEN space. `inflate`
+// nudges each vertex out from the cell centre ~1px so neighbouring dirt tiles
+// overlap and don't show hairline seams (matching the old CELL+1 fill trick).
+function traceCell(cx, cy, inflate) {
+  const ccx = (cx + 0.5) * CELL, ccy = (cy + 0.5) * CELL;
+  const f = inflate ? (CELL + 1.0) / CELL : 1;
+  const pts = cellShape(cx, cy);
+  ctx.beginPath();
+  for (let i = 0; i < pts.length; i++) {
+    const vx = ccx + (pts[i][0] - ccx) * f, vy = ccy + (pts[i][1] - ccy) * f;
+    const X = w2sX(vx), Y = w2sY(vy);
+    if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+  }
+  ctx.closePath();
+}
+
 // camera follow (leads slightly in the direction of travel; clamped to world)
 function updateCamera() {
   const lead = 22;

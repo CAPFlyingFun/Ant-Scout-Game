@@ -126,7 +126,7 @@ function draw() {
         const h = (cx * 92821 ^ cy * 53987) & 255, gr = (h / 255 - 0.5) * 8;
         const base = (58 - depth * 24) * L + (1 - L) * 8;
         ctx.fillStyle = `hsl(${30 - depth * 8},${40 - depth * 8}%,${clamp(base + gr, 4, 80)}%)`;
-        ctx.fillRect(sx, sy, CELL + 1, CELL + 1);
+        traceCell(cx, cy, true); ctx.fill();                      // beveled dirt tile (smooth corners)
         if (!isSolid(cx, cy - 1) && grid[idx(cx, cy - 1)] === 0) { ctx.fillStyle = `rgba(0,0,0,${0.28 * L})`; ctx.fillRect(sx, sy, CELL + 1, 3); }
         if (h > 235) { ctx.fillStyle = `hsl(26,26%,${clamp(base - 16, 3, 60)}%)`; ctx.fillRect(sx + CELL * 0.3, sy + CELL * 0.3, 4, 4); }
       } else {
