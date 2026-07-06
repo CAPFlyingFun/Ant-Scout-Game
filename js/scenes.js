@@ -33,6 +33,7 @@ function newGame() {                                          // fresh start fro
   won = false; intro = 1; banner = null;
   ant.carry = null; ant.hasGem = false;
   parts.length = 0; sparks.length = 0; dust.length = 0; shake = 0;
+  resetStats();                                               // start every run at full HP / food / water
   scene = null;
   gotoScene('underground');
 }
@@ -81,6 +82,7 @@ function update(dt) {
   applyMovement(dt);           // shared movement/integrate
   scene.resolveCollision();    // scene blocks the ant against its own geometry
   scene.update(dt);            // scene sim: digging / entities / objective / door proximity
+  updateStats(dt);             // survival drain / regen / nest refill (live play only)
 
   decayFx();
   updateCamera();              // clamps using scene.worldW / scene.worldH
@@ -95,6 +97,7 @@ function draw() {
   if (gameScreen === 'playing') {
     drawUI();                                                 // joystick (+ DIG/GRAB when scene.canDig)
     drawWeatherChip();                                        // shared HUD chrome
+    drawStats();                                              // shared HP / food / water bars (both scenes)
     drawBanner();
     depthPill = null;                                         // reset the tap target; the scene HUD repopulates it
     if (scene && scene.drawHUD) scene.drawHUD();              // scene-specific HUD (underground: objective + depth)

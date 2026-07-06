@@ -146,6 +146,15 @@ function drawUnderground() {
   drawAnthill(gsy);      // soil mound + entrance hole around the shaft (in front of grass, behind the ant)
   drawHome();
 
+  // NEST safe-zone glow — subtle warm pulse so the player learns where they recover
+  if (scene && scene.isSafeZone && scene.isSafeZone()) {
+    const hx = w2sX(home.x), hy = w2sY(home.y), rad = SURVIVAL.nestRadius * CELL;
+    const pulse = 0.10 + 0.05 * Math.sin(t * 2.2);
+    const ng = ctx.createRadialGradient(hx, hy, 6, hx, hy, rad);
+    ng.addColorStop(0, `rgba(255,210,140,${pulse})`); ng.addColorStop(1, 'rgba(255,190,120,0)');
+    ctx.fillStyle = ng; ctx.beginPath(); ctx.arc(hx, hy, rad, 0, 7); ctx.fill();
+  }
+
   // pebbles
   for (const p of pebbles) {
     if (p.buried) continue;

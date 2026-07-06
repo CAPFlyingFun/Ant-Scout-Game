@@ -8,8 +8,16 @@ let W = 0, H = 0, DPR = 1;
 let safeTop = 0, safeLeft = 0, safeRight = 0, safeBottom = 0;
 
 // screens + environment
-let gameScreen = 'menu';                                   // 'menu' | 'settings' | 'playing'
+let gameScreen = 'menu';                                   // 'menu' | 'settings' | 'playing' | 'dead'
 const env = { mode: 'live', kind: 'clear', isDay: 1 };     // 'live' = real weather, 'manual' = chosen
+
+// survival stats (shared across scenes; mutated only via survival.js hooks)
+const stats = {
+  hp: 100, hpMax: 100,
+  food: 100, foodMax: 100,
+  water: 100, waterMax: 100,
+  dead: false, deathCause: '',
+};
 
 // depth meter
 let unitIx = 0;               // index into UNITS

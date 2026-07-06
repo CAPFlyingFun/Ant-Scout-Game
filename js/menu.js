@@ -12,6 +12,7 @@ function showScreen(s) {
   $('settings').classList.toggle('hidden', s !== 'settings');
   $('btnPause').classList.toggle('hidden', s !== 'playing');
   const act = $('btnAction'); if (act && s !== 'playing') act.classList.add('hidden');   // door button only in-game
+  if (typeof hideDeath === 'function') hideDeath();          // never leave the death overlay up on a live screen
   if (s === 'settings') refreshSettingsUI();
   if (s === 'menu') updateMenuText();
 }
@@ -43,6 +44,10 @@ function wireMenu() {
   $('btnPause').onclick    = openSettings;
   $('btnBack').onclick     = () => showScreen(prevScreen);
   const act = $('btnAction'); if (act) act.onclick = () => { if (actionTarget) gotoScene(actionTarget); };  // door
+
+  // death overlay buttons
+  $('btnRespawn').onclick  = () => { hideDeath(); resetStats(); newGame(); showScreen('playing'); };
+  $('btnDeathMenu').onclick = () => { hideDeath(); resetStats(); showScreen('menu'); };
 
   document.querySelectorAll('#segMode .seg-btn').forEach(b => b.onclick = () => {
     env.mode = b.dataset.mode; saveEnv();

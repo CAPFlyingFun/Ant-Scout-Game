@@ -136,4 +136,9 @@ const UndergroundScene = {
     const nearSurface = ant.y < (surfaceRow + 1) * CELL;
     return (nearX && nearSurface) ? { label: '🗺️ Surface', to: 'surface' } : null;
   },
+
+  // NEST safe zone: near the home entrance chamber -> food & water refill here
+  isSafeZone() {
+    return Math.hypot(ant.x - home.x, ant.y - home.y) < SURVIVAL.nestRadius * CELL;
+  },
 };
