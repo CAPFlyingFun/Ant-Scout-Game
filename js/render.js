@@ -202,10 +202,13 @@ function draw() {
   // lightning flash
   if (weather.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${weather.flash * 0.5})`; ctx.fillRect(0, 0, W, H); }
 
-  drawUI();
-  drawHUD();
-  if (intro > 0) drawIntro();
-  if (won) drawWin();
+  // Interface only renders in-game; sky/grass/world/ant above stay drawing as the menu backdrop.
+  if (gameScreen === 'playing') {
+    drawUI();
+    drawHUD();
+    if (intro > 0) drawIntro();
+    if (won) drawWin();
+  }
 }
 
 function drawHome() {
@@ -296,8 +299,9 @@ function drawHUD() {
   const obj = treasure.home ? 'Treasure secured'
             : treasure.found ? (ant.carry === treasure ? 'Carry the gem up to the entrance ↑' : 'Grab the gem, then carry it home')
             : 'Objective: dig down and find the buried gem';
-  ctx.fillStyle = 'rgba(10,8,6,.5)'; roundRect(10, 10, ctx.measureText(obj).width + 22, 30, 8); ctx.fill();
-  ctx.fillStyle = '#ffe9c8'; ctx.fillText(obj, 21, 30);
+  const oy = 10 + safeTop;   // clear the notch / status bar
+  ctx.fillStyle = 'rgba(10,8,6,.5)'; roundRect(52, oy, ctx.measureText(obj).width + 22, 30, 8); ctx.fill();
+  ctx.fillStyle = '#ffe9c8'; ctx.fillText(obj, 63, oy + 20);
 
   drawWeatherChip();
 
@@ -327,7 +331,7 @@ function drawWeatherChip() {
   }
   ctx.font = '700 13px -apple-system,sans-serif';
   const w = Math.min(W - 20, ctx.measureText(label).width + 20);
-  const x = 10, y = 46, h = 26;
+  const x = 10, y = 46 + safeTop, h = 26;
   ctx.fillStyle = 'rgba(10,8,6,.5)'; roundRect(x, y, w, h, 8); ctx.fill();
   ctx.fillStyle = '#cfe6ff'; ctx.fillText(label, x + 10, y + 18);
   weather.chip = { x, y, w, h };
@@ -340,7 +344,7 @@ function drawDepthMeter() {
   const label = '⛏ ' + fmtDepth(cur);
   ctx.font = '800 16px -apple-system,sans-serif';
   const tw = ctx.measureText(label).width;
-  const pw = tw + 26, ph = 32, px = W - pw - 10, py = 10;
+  const pw = tw + 26, ph = 32, px = W - pw - 10, py = 10 + safeTop;
   ctx.fillStyle = 'rgba(10,8,6,.55)'; roundRect(px, py, pw, ph, 9); ctx.fill();
   ctx.strokeStyle = 'rgba(255,220,160,.25)'; ctx.lineWidth = 1; ctx.stroke();
   ctx.fillStyle = '#ffe1a6'; ctx.fillText(label, px + 13, py + 21);

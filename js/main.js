@@ -31,8 +31,10 @@ window.addEventListener('resize', resize);
 
 // boot
 resize();
-applyWeatherVisuals();   // seed sky targets from default weather
-resetGame();
+initEnvironment();       // decide starting weather (live / manual / offline) from saved settings
+resetGame();             // build the world so it's a live backdrop behind the menu
+wireMenu();
+showScreen('menu');
 
 let last = performance.now();
 function frame(now) {

@@ -34,3 +34,47 @@ canvas {
   height: 100%;
   touch-action: none;
 }
+
+/* invisible probe: height resolves to the top safe-area inset, read by resize() */
+#safeprobe {
+  position: fixed; top: 0; left: 0; width: 0;
+  height: env(safe-area-inset-top, 0px);
+  pointer-events: none; visibility: hidden;
+}
+
+/* ---- menu / settings overlays ---- */
+.overlay {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(6, 5, 4, .55); backdrop-filter: blur(2px);
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+}
+.overlay.hidden, .hidden { display: none !important; }
+.card {
+  width: 100%; max-width: 340px; background: rgba(20, 16, 12, .92);
+  border: 1px solid rgba(255, 220, 160, .18); border-radius: 16px; padding: 22px;
+  color: #f3e8d8; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, .5);
+}
+.title { font-size: 30px; font-weight: 800; }
+.title.small { font-size: 22px; margin-bottom: 6px; }
+.subtitle { color: #cdbfa8; margin: 2px 0 18px; }
+.label { text-align: left; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #b9a68c; margin: 16px 4px 6px; }
+.btn {
+  display: block; width: 100%; margin: 8px 0; padding: 13px; border: 0; border-radius: 11px;
+  font-size: 16px; font-weight: 700; background: rgba(255, 255, 255, .08); color: #f3e8d8; cursor: pointer;
+}
+.btn.primary { background: #e0a44a; color: #3a2400; }
+.btn:active { transform: scale(.98); }
+.seg { display: flex; gap: 6px; }
+.seg.wrap { flex-wrap: wrap; }
+.seg-btn {
+  flex: 1 1 auto; min-width: 72px; padding: 11px 8px; border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 10px; background: rgba(255, 255, 255, .05); color: #e8dcc8; font-weight: 700; font-size: 14px; cursor: pointer;
+}
+.seg-btn.active { background: #5ab054; color: #0b0a0d; border-color: #5ab054; }
+.wxline { margin-top: 12px; font-size: 13px; color: #8fbfe0; }
+.corner-btn {
+  position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: calc(8px + env(safe-area-inset-left, 0px));
+  z-index: 9; width: 38px; height: 38px; border: 0; border-radius: 10px;
+  background: rgba(10, 8, 6, .55); color: #ffe1a6; font-size: 18px; cursor: pointer;
+}

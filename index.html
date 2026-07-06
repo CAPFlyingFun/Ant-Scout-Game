@@ -26,6 +26,57 @@
 <body>
 <div id="wrap"><canvas id="c"></canvas></div>
 
+<!-- probe: its height resolves to the top safe-area inset so the canvas HUD can dodge the notch -->
+<div id="safeprobe"></div>
+
+<!-- main menu -->
+<div id="menu" class="overlay">
+  <div class="card">
+    <div class="title">🐜 Ant Scout</div>
+    <div class="subtitle">The Buried Cavern</div>
+    <button id="btnPlay" class="btn primary">▶ Play</button>
+    <button id="btnSettings" class="btn">⚙ Settings</button>
+    <div id="menuWx" class="wxline">—</div>
+  </div>
+</div>
+
+<!-- settings -->
+<div id="settings" class="overlay hidden">
+  <div class="card">
+    <div class="title small">⚙ Settings</div>
+    <div class="label">Environment</div>
+    <div class="seg" id="segMode">
+      <button data-mode="live" class="seg-btn">📍 Live weather</button>
+      <button data-mode="manual" class="seg-btn">🎨 Manual</button>
+    </div>
+    <div id="livePanel">
+      <button id="btnGPS" class="btn">📍 Use my location</button>
+      <button id="btnZip" class="btn">🔢 Enter ZIP code</button>
+      <div id="locLine" class="wxline">No saved location</div>
+    </div>
+    <div id="manualPanel" class="hidden">
+      <div class="label">Time of day</div>
+      <div class="seg" id="segTime">
+        <button data-day="1" class="seg-btn">☀ Day</button>
+        <button data-day="0" class="seg-btn">🌙 Night</button>
+      </div>
+      <div class="label">Weather</div>
+      <div class="seg wrap" id="segKind">
+        <button data-kind="clear" class="seg-btn">Clear</button>
+        <button data-kind="cloudy" class="seg-btn">Cloudy</button>
+        <button data-kind="rain" class="seg-btn">Rain</button>
+        <button data-kind="snow" class="seg-btn">Snow</button>
+        <button data-kind="storm" class="seg-btn">Storm</button>
+        <button data-kind="fog" class="seg-btn">Fog</button>
+      </div>
+      <button id="btnRandom" class="btn">🎲 Randomize</button>
+    </div>
+    <button id="btnBack" class="btn primary">✓ Done</button>
+  </div>
+</div>
+
+<button id="btnPause" class="corner-btn hidden">☰</button>
+
 <!-- load order matters: constants -> state -> core -> systems -> loop -->
 <script src="js/config.js"></script>
 <script src="js/state.js"></script>
@@ -35,6 +86,7 @@
 <script src="js/input.js"></script>
 <script src="js/update.js"></script>
 <script src="js/render.js"></script>
+<script src="js/menu.js"></script>
 <script src="js/main.js"></script>
 
 <!-- register the service worker so the game installs & plays offline,

@@ -4,6 +4,11 @@
 
 // viewport
 let W = 0, H = 0, DPR = 1;
+let safeTop = 0;             // top safe-area inset (notch / status bar) in CSS px
+
+// screens + environment
+let gameScreen = 'menu';                                   // 'menu' | 'settings' | 'playing'
+const env = { mode: 'live', kind: 'clear', isDay: 1 };     // 'live' = real weather, 'manual' = chosen
 
 // depth meter
 let unitIx = 0;               // index into UNITS

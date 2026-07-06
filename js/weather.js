@@ -85,7 +85,9 @@ function fetchWeatherByCoords(lat, lon, placeName) {
       weather.label   = wmoLabel(weather.code);
       if (placeName) weather.place = placeName;
       weather.status  = 'ok';
+      cacheWeather();                       // remember the last real reading for offline launches
       applyWeatherVisuals();
+      if (typeof updateMenuText === 'function') updateMenuText();
       banner = { text: wmoIcon(weather.code, weather.isDay) + '  ' + weather.label +
                  (weather.tempF != null ? '  ' + weather.tempF + '°F' : '') +
                  (weather.place ? '  ·  ' + weather.place : ''), t: 3.2 };
@@ -167,4 +169,76 @@ function updateWeather(dt) {
     if (weather.flashT <= 0) { weather.flashT = 3 + Math.random() * 6; weather.flash = 1; }
   }
   if (weather.flash > 0) weather.flash = Math.max(0, weather.flash - dt * 3.2);
+}
+
+/* ============================================================
+   Environment presets, persistence, and launch logic
+   ============================================================ */
+
+const WEATHER_KINDS = {
+  clear:  { code: 0,  label: 'Clear'  },
+  cloudy: { code: 3,  label: 'Cloudy' },
+  rain:   { code: 61, label: 'Rain'   },
+  snow:   { code: 73, label: 'Snow'   },
+  storm:  { code: 95, label: 'Storm'  },
+  fog:    { code: 45, label: 'Fog'    },
+};
+
+function applyManualEnv(kind, isDay) {
+  const k = WEATHER_KINDS[kind] || WEATHER_KINDS.clear;
+  weather.code = k.code; weather.isDay = isDay ? 1 : 0;
+  weather.tempF = null; weather.place = ''; weather.label = k.label;
+  weather.status = 'manual';
+  applyWeatherVisuals();
+}
+
+function dayFromClock() { const h = new Date().getHours(); return (h >= 7 && h < 19) ? 1 : 0; }
+
+// --- localStorage (wrapped in try/catch so it degrades gracefully) ---
+function saveEnv()  { try { localStorage.setItem('antscout.env', JSON.stringify(env)); } catch (e) {} }
+function loadEnv()  { try { const s = JSON.parse(localStorage.getItem('antscout.env'));
+                            if (s) { env.mode = s.mode || 'live'; env.kind = s.kind || 'clear'; env.isDay = (s.isDay != null ? s.isDay : 1); } } catch (e) {} }
+function saveLocation(lat, lon, place) { try { localStorage.setItem('antscout.loc', JSON.stringify({ lat, lon, place: place || '' })); } catch (e) {} }
+function loadLocation() { try { return JSON.parse(localStorage.getItem('antscout.loc')); } catch (e) { return null; } }
+function cacheWeather() { try { localStorage.setItem('antscout.lastwx', JSON.stringify({ code: weather.code, isDay: weather.isDay, windKmh: weather.windKmh, tempF: weather.tempF, place: weather.place, label: weather.label })); } catch (e) {} }
+function loadCachedWeather() { try { return JSON.parse(localStorage.getItem('antscout.lastwx')); } catch (e) { return null; } }
+
+// --- launch: decide the starting environment ---
+function initEnvironment() {
+  loadEnv();
+  if (env.mode === 'manual') { applyManualEnv(env.kind, env.isDay); return; }
+  // live mode
+  if (!navigator.onLine) {
+    const c = loadCachedWeather();
+    if (c) { Object.assign(weather, c); weather.status = 'ok'; applyWeatherVisuals(); banner = { text: '📴 Offline — showing last weather', t: 2.8 }; }
+    else   { applyManualEnv('clear', dayFromClock());          banner = { text: '📴 Offline — pick conditions in Settings', t: 3.2 }; }
+    return;
+  }
+  const loc = loadLocation();
+  if (loc && loc.lat != null) fetchWeatherByCoords(loc.lat, loc.lon, loc.place);  // remembered spot, fresh weather
+  else applyManualEnv('clear', dayFromClock());                                   // default until they set a location once
+}
+
+// --- set / override location (used by the GPS + ZIP buttons; also for travel) ---
+function setLocationViaGPS() {
+  if (!navigator.geolocation) { setLocationViaZip(); return; }
+  if (!navigator.onLine) { banner = { text: '📴 Connect to internet to use GPS', t: 2.6 }; return; }
+  banner = { text: '📍 Getting your location…', t: 2.0 }; weather.status = 'loading';
+  navigator.geolocation.getCurrentPosition(
+    pos => { saveLocation(pos.coords.latitude, pos.coords.longitude, ''); env.mode = 'live'; saveEnv(); fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude, ''); },
+    ()  => setLocationViaZip(),
+    { timeout: 8000, maximumAge: 600000 }
+  );
+}
+function setLocationViaZip() {
+  let zip = null; try { zip = window.prompt('Enter US ZIP code:'); } catch (e) {}
+  if (zip && /^\d{5}$/.test(zip.trim())) {
+    const z = zip.trim();
+    fetch('https://api.zippopotam.us/us/' + z).then(r => { if (!r.ok) throw 0; return r.json(); }).then(d => {
+      const p = d.places && d.places[0]; if (!p) throw 0;
+      const name = p['place name'] + ', ' + p['state abbreviation'];
+      saveLocation(p.latitude, p.longitude, name); env.mode = 'live'; saveEnv();
+      fetchWeatherByCoords(p.latitude, p.longitude, name);
+    }).catch(() => { weather.status = 'error'; banner = { text: '⚠️ ZIP not found', t: 2.6 }; });
+  }
 }

@@ -11,6 +11,10 @@ function resize() {
   canvas.width = Math.floor(W * DPR); canvas.height = Math.floor(H * DPR);
   canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // Read the notch / status-bar inset so the canvas HUD can sit below it
+  // (the page uses viewport-fit=cover). #safeprobe is height:env(safe-area-inset-top).
+  const probe = document.getElementById('safeprobe');
+  safeTop = probe ? probe.getBoundingClientRect().height : 0;
 }
 
 // grid queries

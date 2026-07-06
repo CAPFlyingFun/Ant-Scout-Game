@@ -51,12 +51,18 @@ function tryCarry() {
 function update(dt) {
   t += dt;
 
+  // Weather + wind run EVERY frame, regardless of screen, so the menu/settings
+  // backdrop keeps animating with a live sky.
+  updateWind(dt);
+  updateWeather(dt);
+  if (gameScreen !== 'playing') { decayFx(); return; }   // freeze gameplay in menu/settings
+
   // input: dig is recomputed each frame from held pointers
   input.dig = false;
   for (const [id, role] of pointers) { if (role === 'dig') input.dig = true; }
   readKeyboard();
 
-  if (won) { decayFx(); updateWind(dt); updateWeather(dt); updateCamera(); return; }
+  if (won) { decayFx(); updateCamera(); return; }
   if (intro > 0) intro = Math.max(0, intro - dt * 0.6);
 
   // movement
@@ -137,8 +143,6 @@ function update(dt) {
   }
 
   decayFx();
-  updateWind(dt);
-  updateWeather(dt);
   updateCamera();
 }
 
