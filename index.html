@@ -37,11 +37,42 @@
 <script src="js/render.js"></script>
 <script src="js/main.js"></script>
 
-<!-- register the service worker so the game installs & plays offline -->
+<!-- register the service worker so the game installs & plays offline,
+     and auto-apply new versions right away on the next push -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').catch(function () {});
+    navigator.serviceWorker.register('sw.js').then(function (reg) {
+      // A genuinely new version has finished installing (there was already a
+      // controller, so this is an UPDATE, not the first install).
+      var updateReady = false;
+      reg.addEventListener('updatefound', function () {
+        var nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', function () {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            updateReady = true;
+            nw.postMessage({ type: 'SKIP_WAITING' }); // belt & suspenders; sw also skipWaits on install
+          }
+        });
+      });
+
+      // The new worker took control -> swap to it immediately (once).
+      var reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!updateReady || reloading) return;   // ignore the first-install claim
+        reloading = true;
+        window.location.reload();
+      });
+
+      // Look for a new version on launch and whenever the app is refocused,
+      // so an app left open still picks up a fresh push.
+      var check = function () { reg.update().catch(function () {}); };
+      check();
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') check();
+      });
+    }).catch(function () {});
   });
 }
 </script>
