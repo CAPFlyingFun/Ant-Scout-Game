@@ -3,7 +3,7 @@
    ============================================================ */
 
 // app version (shown next to the menu title). Bump on each release.
-const APP_VERSION = 'v0.3.0';
+const APP_VERSION = 'v0.3.1';
 
 // world grid
 const CELL = 30;              // world px per cell (chunky, zoomed-in)
@@ -20,6 +20,17 @@ const UNIT_DECIMALS = { mm: 0, cm: 1, in: 2 };
 // ant tuning (feel)
 const MOVE = { accel: 0.85, maxSpd: 3.4, friction: 0.80, turn: 0.22 };
 const DIG  = { rate: 0.06, reach: 0.55 };
+
+// surface theme as DATA — adding a second theme later = another entry like this,
+// reusing the same collectible/prop pipeline (no new systems).
+const SURFACE_THEME = {
+  id: 'backyard',
+  ground: { base: '#4e7a3a', tuftCols: ['#3f6b30', '#57853f', '#6b9a4a'] },   // grassy field palette
+  counts: { food: 14, water: 8, rock: 22, twig: 14, flower: 16, tuft: 260 },  // how many of each to scatter
+  food:  { refill: 34, respawnSec: 22 },   // each food pickup gives +34 food, respawns after 22s
+  water: { refill: 30, respawnSec: 18 },   // each water pickup gives +30 water, respawns after 18s
+  pickupRadius: 0.9,                        // cells — how close the ant must be to auto-collect
+};
 
 // survival tuning — all rates PER SECOND (starting guesses; tune on device)
 const SURVIVAL = {
