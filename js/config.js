@@ -3,7 +3,7 @@
    ============================================================ */
 
 // app version (shown next to the menu title). Bump on each release.
-const APP_VERSION = 'v0.3.1';
+const APP_VERSION = 'v0.4.0';
 
 // world grid
 const CELL = 30;              // world px per cell (chunky, zoomed-in)
@@ -30,6 +30,34 @@ const SURFACE_THEME = {
   food:  { refill: 34, respawnSec: 22 },   // each food pickup gives +34 food, respawns after 22s
   water: { refill: 30, respawnSec: 18 },   // each water pickup gives +30 water, respawns after 18s
   pickupRadius: 0.9,                        // cells — how close the ant must be to auto-collect
+  enemies: { type: 'spider', count: 5, respawnSec: 14, safeRadius: 5 },  // live spiders; replace delay; safe cells around the anthill
+};
+
+// enemy types as DATA — a 2nd enemy later = another entry + spawning it.
+const ENEMY_TYPES = {
+  spider: {
+    hp: 3,                 // bites to kill
+    speed: 1.5,            // move speed (ant maxSpd ≈ 3.4, so the ant can outrun it)
+    detectRadius: 7,       // cells — sees & starts chasing the ant
+    loseRadius: 11,        // cells — gives up the chase (hysteresis so it doesn't flicker)
+    attackRadius: 0.85,    // cells — close enough to bite the ant
+    attackDamage: 14,      // HP per successful hit
+    attackCooldown: 1.1,   // seconds between its hits
+    r: 12,                 // body radius (bigger than the ant's 9)
+    bodyCol: '#2b2b30', legCol: '#17171b', eyeCol: '#c0392b',
+  },
+};
+
+const COMBAT = {
+  biteReach: 12,           // px added to (antR+enemyR) for a bite to connect
+  biteArc: 1.3,            // radians; enemy must be roughly in FRONT of the ant to bite
+  biteDamage: 1,           // per bite (spider hp 3 → 3 bites)
+  biteCooldown: 0.32,      // seconds between the ant's bites
+  antIFrames: 0.8,         // seconds of invulnerability after the ant is hit
+  knockback: 6.5,          // impulse applied on any hit (to whoever got hit)
+  hitFlashSec: 0.25,       // sprite flash duration on hit
+  dmgFlashSec: 0.4,        // red screen-edge flash when the ANT is hit
+  drop: { kind: 'food', sub: 'leaf', refill: 40, noRespawn: true },  // a killed spider drops this
 };
 
 // survival tuning — all rates PER SECOND (starting guesses; tune on device)

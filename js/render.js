@@ -300,6 +300,8 @@ function drawGem(sx, sy) {
 function drawAnt() {
   const sx = w2sX(ant.x), sy = w2sY(ant.y);
   const s = ant.r * 1.5;
+  const blink = ant.invuln > 0 && (Math.floor(t * 20) % 2 === 0);   // flicker during i-frames
+  ctx.globalAlpha = blink ? 0.4 : 1;
   ctx.save(); ctx.translate(sx, sy); ctx.rotate(ant.angle);
   ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 2, s * 1.05, s * 0.7, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = '#241109'; ctx.lineWidth = Math.max(1.4, s * 0.13); ctx.lineCap = 'round';
@@ -324,12 +326,16 @@ function drawAnt() {
     ctx.beginPath(); ctx.moveTo(s * 0.82, -s * 0.14); ctx.lineTo(s * 1.05, -s * 0.05 - m); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(s * 0.82, s * 0.14); ctx.lineTo(s * 1.05, s * 0.05 + m); ctx.stroke();
   }
+  if (ant.hitFlash > 0) {                                            // white flash when hit
+    ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.ellipse(-s * 0.2, 0, s * 0.9, s * 0.6, 0, 0, 7); ctx.fill();
+  }
   ctx.restore();
   if (ant.carry) {
     const bx = sx - Math.cos(ant.angle) * s * 0.7, by = sy - Math.sin(ant.angle) * s * 0.7 + Math.sin(t * 6) * 1;
     if (ant.carry === treasure) drawGem(bx, by - 2);
     else { ctx.fillStyle = '#b9a68c'; ctx.beginPath(); ctx.ellipse(bx, by - 3, 6, 5, 0, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(60,44,26,.5)'; ctx.lineWidth = 1; ctx.stroke(); }
   }
+  ctx.globalAlpha = 1;   // clear the i-frame blink alpha
 }
 
 // ---------- on-screen controls ----------
@@ -343,23 +349,33 @@ function drawUI() {
   ctx.fillStyle = 'rgba(255,236,210,.85)'; ctx.beginPath(); ctx.arc(kx, ky, joy.R * 0.42, 0, 7); ctx.fill();
   ctx.globalAlpha = 1;
 
-  // DIG / GRAB only exist in scenes that support digging (underground).
-  if (scene && scene.canDig) {
-    const auto = autoDig;                                     // locked-on auto-dig (double-tap)
+  // Primary action button: DIG underground, BITE on the surface (combat).
+  if (scene && (scene.canDig || scene.canBite)) {
+    const bite = !scene.canDig && scene.canBite;
+    const auto = scene.canDig && autoDig;                     // locked-on auto-dig (double-tap)
+    const target = bite && enemyTargetable(scene.enemies);   // a spider is in bite range + arc
     ctx.globalAlpha = (input.dig || auto) ? 1 : 0.72;
-    ctx.fillStyle = auto ? 'rgba(80,190,80,.92)' : (input.dig ? 'rgba(240,180,60,.9)' : 'rgba(60,42,20,.5)');
+    ctx.fillStyle = auto ? 'rgba(80,190,80,.92)'
+                  : target ? 'rgba(220,60,50,.95)'
+                  : bite ? 'rgba(150,60,50,.62)'
+                  : (input.dig ? 'rgba(240,180,60,.9)' : 'rgba(60,42,20,.5)');
     ctx.beginPath(); ctx.arc(ui.digX, ui.digY, ui.digR, 0, 7); ctx.fill();
-    ctx.strokeStyle = auto ? 'rgba(210,255,210,.75)' : 'rgba(255,240,200,.5)'; ctx.lineWidth = auto ? 3 : 2; ctx.stroke();
-    ctx.fillStyle = auto ? '#08240a' : (input.dig ? '#4a2c00' : '#ffdf9a');
-    ctx.font = `800 ${Math.round(ui.digR * (auto ? 0.32 : 0.42))}px -apple-system,sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(auto ? 'AUTO' : 'DIG', ui.digX, ui.digY);
+    ctx.strokeStyle = auto ? 'rgba(210,255,210,.75)' : target ? 'rgba(255,210,200,.85)' : 'rgba(255,240,200,.5)';
+    ctx.lineWidth = (auto || target) ? 3 : 2; ctx.stroke();
+    const label = auto ? 'AUTO' : bite ? (target ? '⚔️' : 'BITE') : 'DIG';
+    ctx.fillStyle = auto ? '#08240a' : bite ? '#fff' : (input.dig ? '#4a2c00' : '#ffdf9a');
+    ctx.font = `800 ${Math.round(ui.digR * (label.length > 3 ? 0.32 : 0.42))}px -apple-system,sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, ui.digX, ui.digY);
 
-    ctx.globalAlpha = 0.72;
-    ctx.fillStyle = ant.carry ? 'rgba(90,200,255,.5)' : 'rgba(40,50,60,.5)';
-    ctx.beginPath(); ctx.arc(ui.carryX, ui.carryY, ui.carryR, 0, 7); ctx.fill();
-    ctx.strokeStyle = 'rgba(220,240,255,.45)'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = '#dff0ff'; ctx.font = `700 ${Math.round(ui.carryR * 0.34)}px -apple-system,sans-serif`;
-    ctx.fillText(ant.carry ? 'DROP' : 'GRAB', ui.carryX, ui.carryY);
+    // GRAB only in dig scenes (carrying pebbles / the gem)
+    if (scene.canDig) {
+      ctx.globalAlpha = 0.72;
+      ctx.fillStyle = ant.carry ? 'rgba(90,200,255,.5)' : 'rgba(40,50,60,.5)';
+      ctx.beginPath(); ctx.arc(ui.carryX, ui.carryY, ui.carryR, 0, 7); ctx.fill();
+      ctx.strokeStyle = 'rgba(220,240,255,.45)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#dff0ff'; ctx.font = `700 ${Math.round(ui.carryR * 0.34)}px -apple-system,sans-serif`;
+      ctx.fillText(ant.carry ? 'DROP' : 'GRAB', ui.carryX, ui.carryY);
+    }
     ctx.globalAlpha = 1;
   }
   ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';

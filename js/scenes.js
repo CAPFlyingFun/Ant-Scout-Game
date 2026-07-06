@@ -83,6 +83,7 @@ function update(dt) {
   scene.resolveCollision();    // scene blocks the ant against its own geometry
   scene.update(dt);            // scene sim: digging / entities / objective / door proximity
   updateStats(dt);             // survival drain / regen / nest refill (live play only)
+  updateAntCombat(dt);         // i-frames / hit flash / bite cooldown / damage flash decay
 
   decayFx();
   updateCamera();              // clamps using scene.worldW / scene.worldH
@@ -93,6 +94,8 @@ function draw() {
 
   // shared lightning flash (weather) layers over whatever scene is showing
   if (weather.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${weather.flash * 0.5})`; ctx.fillRect(0, 0, W, H); }
+  // red damage flash when the ant is hit (combat)
+  if (dmgFlash > 0) { ctx.fillStyle = `rgba(200,20,20,${(dmgFlash / COMBAT.dmgFlashSec) * 0.35})`; ctx.fillRect(0, 0, W, H); }
 
   if (gameScreen === 'playing') {
     drawUI();                                                 // joystick (+ DIG/GRAB when scene.canDig)

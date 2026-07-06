@@ -16,16 +16,14 @@ function onDown(e) {
     ui = uiLayout();
     if (inRect(x, y, depthPill)) { unitIx = (unitIx + 1) % UNITS.length; pointers.set(id, 'ui'); }
     else if (inRect(x, y, weather.chip)) { requestWeather(); pointers.set(id, 'ui'); }
-    else if (scene && scene.canDig && hit(x, y, ui.digX, ui.digY, ui.digR)) {
-      const now = performance.now();
-      if (autoDig) {                                          // any tap while AUTO is on turns it off
-        autoDig = false; lastDigTap = 0; banner = { text: 'Auto-dig off', t: 1.4 };
-      } else if (autoDigUnlocked && now - lastDigTap < 350) { // double-tap locks it on
-        autoDig = true; lastDigTap = 0; banner = { text: '⛏️ Auto-dig ON — tap DIG to stop', t: 2.4 };
-      } else {
-        lastDigTap = now;
+    else if (scene && (scene.canDig || scene.canBite) && hit(x, y, ui.digX, ui.digY, ui.digR)) {
+      if (scene.canDig) {                                     // auto-dig double-tap (underground only)
+        const now = performance.now();
+        if (autoDig) { autoDig = false; lastDigTap = 0; banner = { text: 'Auto-dig off', t: 1.4 }; }
+        else if (autoDigUnlocked && now - lastDigTap < 350) { autoDig = true; lastDigTap = 0; banner = { text: '⛏️ Auto-dig ON — tap DIG to stop', t: 2.4 }; }
+        else { lastDigTap = now; }
       }
-      pointers.set(id, 'dig'); input.dig = true;              // holding still digs manually
+      pointers.set(id, 'dig'); input.dig = true;              // hold to dig (underground) / bite (surface)
     }
     else if (scene && scene.canDig && hit(x, y, ui.carryX, ui.carryY, ui.carryR)) { pointers.set(id, 'carry'); input.carryEdge = true; }
     else if (!joy.active && joyZoneHit(x, y)) {       // joystick side (follows its anchor) -> floating stick

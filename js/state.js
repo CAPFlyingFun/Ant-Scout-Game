@@ -28,7 +28,9 @@ let grid, hp, seen;           // grid: 1 dirt / 0 open ; hp: dig progress per ce
 let pebbles, treasure, home;
 
 // the scout
-const ant = { x: 0, y: 0, vx: 0, vy: 0, angle: -Math.PI / 2, r: 9, legT: 0, carry: null, hasGem: false };
+const ant = { x: 0, y: 0, vx: 0, vy: 0, angle: -Math.PI / 2, r: 9, legT: 0, carry: null, hasGem: false,
+  invuln: 0, hitFlash: 0, biteT: 0 };   // combat timers (i-frames / hit flash / bite cooldown)
+let dmgFlash = 0;                        // red screen-edge flash when the ant takes damage
 
 // camera
 const cam = { x: 0, y: 0 };

@@ -14,10 +14,13 @@ const SurfaceScene = {
   id: 'surface',
   worldW: 3600, worldH: 2400,     // generous "huge" feel; the ant hits invisible edges here
   canDig: false,
+  canBite: true,                  // the DIG button becomes BITE here (Phase 4 combat)
   built: false,
   hill: { x: 0, y: 0, r: 46 },    // anthill = the entry point AND the door back underground
   props: [],                      // non-interactive decoration
   items: [],                      // collectible food & water
+  enemies: [],                    // spiders (Phase 4)
+  enemyRespawnT: 0,
 
   build() {
     this.worldW = 3600; this.worldH = 2400;
@@ -55,6 +58,25 @@ const SurfaceScene = {
     };
     addItems('food',  C.food,  101, i => foodSubs[(hash01(101 + i * 9.1) * 3) | 0]);
     addItems('water', C.water, 211, i => hash01(211 + i * 9.1) < 0.28 ? 'puddle' : 'dew');
+
+    // --- spiders (Phase 4) — spawned outside the anthill safe radius ---
+    this.enemies = []; this.enemyRespawnT = 0;
+    const ec = SURFACE_THEME.enemies;
+    for (let i = 0; i < ec.count; i++) { const p = this.spiderSpawnPos(0); this.enemies.push(spawnEnemy(ec.type, p.x, p.y)); }
+  },
+
+  // a valid spawn: inside bounds, clear of the anthill safe zone, and (optionally)
+  // at least minAntCells from the ant so a respawn never lands on the player.
+  spiderSpawnPos(minAntCells) {
+    const safe = SURFACE_THEME.enemies.safeRadius * CELL + 40;
+    let x, y, tries = 0;
+    do {
+      x = 60 + Math.random() * (this.worldW - 120);
+      y = 60 + Math.random() * (this.worldH - 120);
+      tries++;
+    } while (tries < 40 && (Math.hypot(x - this.hill.x, y - this.hill.y) < safe ||
+             (minAntCells > 0 && Math.hypot(x - ant.x, y - ant.y) < minAntCells * CELL)));
+    return { x, y };
   },
 
   enter(from) {
@@ -69,11 +91,29 @@ const SurfaceScene = {
   update(dt) {
     // forage: proximity auto-collect + respawn (generic pipeline)
     updateCollectibles(this.items, dt, it => {
-      if (it.kind === 'food')  { addFood(SURFACE_THEME.food.refill);  it.respawnT = SURFACE_THEME.food.respawnSec;
-        pickupSparkle(it.x, it.y, '#ffd27a'); banner = { text: '+' + SURFACE_THEME.food.refill + ' 🍖', t: 1.2 }; }
+      if (it.kind === 'food')  { const amt = it.noRespawn ? COMBAT.drop.refill : SURFACE_THEME.food.refill;
+        addFood(amt); if (!it.noRespawn) it.respawnT = SURFACE_THEME.food.respawnSec; else it.gone = true;
+        pickupSparkle(it.x, it.y, '#ffd27a'); banner = { text: '+' + amt + ' 🍖', t: 1.2 }; }
       else                     { addWater(SURFACE_THEME.water.refill); it.respawnT = SURFACE_THEME.water.respawnSec;
         pickupSparkle(it.x, it.y, '#8fe0ff'); banner = { text: '+' + SURFACE_THEME.water.refill + ' 💧', t: 1.2 }; }
     });
+    // drop items marked noRespawn are removed once collected (never come back)
+    if (this.items.some(i => i.gone)) this.items = this.items.filter(i => !i.gone);
+
+    // combat: spider AI + the ant's bite (DIG button = BITE here)
+    const ec = SURFACE_THEME.enemies;
+    updateEnemies(this.enemies, dt, { anthill: { x: this.hill.x, y: this.hill.y }, safeRadius: ec.safeRadius, bounds: { w: this.worldW, h: this.worldH } });
+    if (input.dig) tryBite(this.enemies);
+
+    // maintain the spider population
+    if (this.enemies.length < ec.count) {
+      this.enemyRespawnT -= dt;
+      if (this.enemyRespawnT <= 0) {
+        this.enemyRespawnT = ec.respawnSec;
+        const p = this.spiderSpawnPos(ENEMY_TYPES[ec.type].detectRadius + 1);   // not on top of the ant
+        this.enemies.push(spawnEnemy(ec.type, p.x, p.y));
+      }
+    } else { this.enemyRespawnT = ec.respawnSec; }
   },
 
   draw() { drawSurface(this); },
@@ -150,6 +190,7 @@ function drawSurface(s) {
   ctx.fillStyle = '#0a0705';
   ctx.beginPath(); ctx.ellipse(hx, hy, r * 0.34, r * 0.26, 0, 0, 7); ctx.fill();
 
+  drawEnemies(s.enemies);   // spiders on the ground, below the ant
   drawAnt();
 
   // pickup sparkles
