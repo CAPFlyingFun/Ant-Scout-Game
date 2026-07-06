@@ -143,6 +143,7 @@ function drawUnderground() {
   const gsy = w2sY(surfaceRow * CELL);
   drawGrass(gsy);
   drawPrecip(surfScreenY);
+  drawAnthill(gsy);      // soil mound + entrance hole around the shaft (in front of grass, behind the ant)
   drawHome();
 
   // pebbles
@@ -201,6 +202,70 @@ function drawUnderground() {
   const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.72);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.5)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+}
+
+// Anthill mound around the underground entrance: a soil dome rising above the
+// grass line with a dark doorway hole in the middle where the ant emerges.
+// Drawn in front of the grass and behind the ant, at the surface entrance only.
+function drawAnthill(gsy) {
+  if (gsy < -160 || gsy > H + 60) return;                 // only near the surface
+  const cx = w2sX(home.x);
+  const HW = 90, PH = 60;                                   // half-width, peak height above the ground line
+  const baseY = gsy + 3, peakY = gsy - PH;
+
+  const domePath = () => {
+    ctx.beginPath();
+    ctx.moveTo(cx - HW, baseY);
+    ctx.bezierCurveTo(cx - HW * 0.62, baseY, cx - HW * 0.5, peakY, cx, peakY);
+    ctx.bezierCurveTo(cx + HW * 0.5, peakY, cx + HW * 0.62, baseY, cx + HW, baseY);
+    ctx.closePath();
+  };
+
+  // soil fill (vertical gradient: sunlit crown -> shadowed base)
+  domePath();
+  const g = ctx.createLinearGradient(0, peakY, 0, baseY);
+  g.addColorStop(0, '#c1904f'); g.addColorStop(0.55, '#95693a'); g.addColorStop(1, '#63431f');
+  ctx.fillStyle = g; ctx.fill();
+
+  // grainy loose-soil speckles (clipped to the mound)
+  ctx.save(); domePath(); ctx.clip();
+  for (let i = 0; i < 40; i++) {
+    const rx = cx + (hash01(i * 2.31 + 1) - 0.5) * HW * 1.9;
+    const ry = baseY - hash01(i * 3.77 + 2) * PH;
+    const d = hash01(i * 5.13 + 4);
+    ctx.fillStyle = d < 0.5 ? `rgba(58,38,20,${0.16 + d * 0.28})` : `rgba(215,175,115,${0.10 + d * 0.14})`;
+    ctx.fillRect(rx | 0, ry | 0, 3, 3);
+  }
+  ctx.restore();
+
+  // rim highlight along the sunlit left shoulder
+  ctx.strokeStyle = 'rgba(255,228,170,.16)'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx - HW * 0.72, baseY - PH * 0.3);
+  ctx.bezierCurveTo(cx - HW * 0.45, peakY + 6, cx - HW * 0.2, peakY, cx, peakY);
+  ctx.stroke();
+
+  // entrance hole in the middle — a rounded doorway that opens toward the top
+  const holeW = 25, holeTop = peakY + 13;
+  ctx.fillStyle = '#080605';
+  ctx.beginPath();
+  ctx.moveTo(cx - holeW, baseY + 3);
+  ctx.bezierCurveTo(cx - holeW, holeTop + 8, cx - holeW * 0.5, holeTop, cx, holeTop);
+  ctx.bezierCurveTo(cx + holeW * 0.5, holeTop, cx + holeW, holeTop + 8, cx + holeW, baseY + 3);
+  ctx.closePath();
+  ctx.fill();
+  // inner shadow for depth
+  ctx.fillStyle = 'rgba(0,0,0,.5)';
+  ctx.beginPath();
+  ctx.ellipse(cx, holeTop + (baseY - holeTop) * 0.55, holeW * 0.62, (baseY - holeTop) * 0.4, 0, 0, 7);
+  ctx.fill();
+  // lit rim around the hole mouth
+  ctx.strokeStyle = 'rgba(190,150,95,.5)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - holeW, baseY + 3);
+  ctx.bezierCurveTo(cx - holeW, holeTop + 8, cx - holeW * 0.5, holeTop, cx, holeTop);
+  ctx.bezierCurveTo(cx + holeW * 0.5, holeTop, cx + holeW, holeTop + 8, cx + holeW, baseY + 3);
+  ctx.stroke();
 }
 
 function drawHome() {
