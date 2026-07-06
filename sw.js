@@ -5,7 +5,7 @@
    network passthrough for the two live-weather APIs.
    Bump CACHE_NAME whenever you change any cached file below.
    ============================================================ */
-const CACHE_NAME = 'ant-scout-v15';
+const CACHE_NAME = 'ant-scout-v16';
 
 // All paths are RELATIVE so this works at any hosting path
 // (e.g. /ant-scout-game/) without edits.
@@ -15,22 +15,27 @@ const STATIC_ASSETS = [
   './offline.html',
   './manifest.json',
   './css/style.css',
-  './js/config.js',
-  './js/state.js',
-  './js/core.js',
-  './js/world.js',
-  './js/weather.js',
-  './js/input.js',
-  './js/controls.js',
-  './js/update.js',
-  './js/render.js',
-  './js/scenes.js',
-  './js/combat.js',
-  './js/scene_underground.js',
-  './js/props.js',
-  './js/npc.js',
-  './js/scene_surface.js',
-  './js/survival.js',
+  // CORE
+  './js/core/config.js',
+  './js/core/state.js',
+  './js/core/engine.js',
+  './js/core/input.js',
+  './js/core/controls.js',
+  // SYSTEMS
+  './js/systems/update.js',
+  './js/systems/weather.js',
+  './js/systems/render.js',
+  './js/systems/props.js',
+  './js/systems/survival.js',
+  './js/systems/combat.js',
+  './js/systems/npc.js',
+  // SCENES
+  './js/scenes/manager.js',
+  // MAPS
+  './js/maps/world.js',
+  './js/maps/underground.js',
+  './js/maps/surface_backyard.js',
+  // BOOT
   './js/menu.js',
   './js/main.js',
   './icons/icon-192x192.png',

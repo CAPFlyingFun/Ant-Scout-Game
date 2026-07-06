@@ -25,7 +25,7 @@ function killAnt(cause) {
   showDeath(cause);
 }
 
-// per-frame survival tick — called ONLY during live play (see scenes.js update)
+// per-frame survival tick — called ONLY during live play (see scenes/manager.js)
 function updateStats(dt) {
   if (stats.dead) return;
   const safe = scene && scene.isSafeZone && scene.isSafeZone();

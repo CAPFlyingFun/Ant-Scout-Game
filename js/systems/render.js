@@ -104,7 +104,7 @@ function drawGrass(gsy) {
 
 // The underground scene's full world render (called by UndergroundScene.draw).
 // Shared chrome (flash, HUD, action button) is layered on top by the shared
-// draw() in scenes.js.
+// draw() in scenes/manager.js.
 function drawUnderground() {
   ctx.fillStyle = '#0a0808'; ctx.fillRect(0, 0, W, H);          // dark base for underground
 

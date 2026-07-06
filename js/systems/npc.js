@@ -5,7 +5,7 @@
    the pattern real ants follow (individual scaling / foraging studies), not
    pure Brownian motion. A gentle pull toward the colony keeps them in range.
    Data-driven + a `behavior` hook so a later phase can add 'forage' (seek the
-   nearest item) with no pipeline change. Loaded before scene_surface.js.
+   nearest item) with no pipeline change. Loaded before maps/surface_backyard.js.
    ============================================================ */
 
 function spawnNpcAnt(x, y) {

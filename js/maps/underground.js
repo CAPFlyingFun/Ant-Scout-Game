@@ -1,5 +1,5 @@
 /* ============================================================
-   scene_underground.js — the dig scene (the original game) as a scene object.
+   underground.js — the dig scene (the original game) as a scene object.
    Owns: grid / hp / seen / pebbles / treasure / home (globals in state.js) plus
    digging, fog-of-war, treasure + win, dirt/grass rendering, circle-vs-dirt
    collision, and the objective + depth HUD. This is the "dig win" that Phase 5

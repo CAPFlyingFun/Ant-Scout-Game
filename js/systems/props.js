@@ -4,7 +4,7 @@
    and run it through updateCollectibles() for proximity auto-collect + respawn,
    and drawItem() to render one. Phase 3 uses it for backyard food/water; future
    themes (Phase 6) and enemy pickups (Phase 4) reuse the same shape + loop.
-   Loaded after the scene files' shared deps, before scene_surface.js.
+   Loaded after the scene files' shared deps, before maps/surface_backyard.js.
    ============================================================ */
 
 // proximity auto-collect + respawn timers. `onCollect(item)` does the effect

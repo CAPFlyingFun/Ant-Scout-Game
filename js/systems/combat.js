@@ -2,7 +2,7 @@
    combat.js — shared, reusable combat: enemy AI, the ant's bite, hit feedback.
    Operates on an enemy array (data-driven via ENEMY_TYPES) + the shared ant/stats.
    A 2nd enemy = one ENEMY_TYPES entry + spawning it; Phase 6 hazards reuse
-   updateEnemies/tryBite unchanged. Loaded after scenes.js, before the scene files.
+   updateEnemies/tryBite unchanged. Loaded after the scene manager, before the scene files.
    ============================================================ */
 
 // spawn one enemy of a type at a position

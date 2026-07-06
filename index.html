@@ -100,23 +100,35 @@
 <button id="btnPause" class="corner-btn hidden">☰</button>
 <button id="btnAction" class="action-btn hidden"></button>
 
-<!-- load order matters: constants -> state -> core -> shared systems -> scenes -> menu -> loop -->
-<script src="js/config.js"></script>
-<script src="js/state.js"></script>
-<script src="js/core.js"></script>
-<script src="js/world.js"></script>
-<script src="js/weather.js"></script>
-<script src="js/input.js"></script>
-<script src="js/controls.js"></script>
-<script src="js/update.js"></script>
-<script src="js/render.js"></script>
-<script src="js/scenes.js"></script>
-<script src="js/combat.js"></script>
-<script src="js/scene_underground.js"></script>
-<script src="js/props.js"></script>
-<script src="js/npc.js"></script>
-<script src="js/scene_surface.js"></script>
-<script src="js/survival.js"></script>
+<!-- Load order matters only for top-level code (object literals, consts):
+     CORE (config first) -> SYSTEMS -> SCENES -> MAPS -> BOOT (last).
+     Function bodies resolve globals at call time, so within a group order is free. -->
+
+<!-- CORE: constants, shared state, engine, input, control layout -->
+<script src="js/core/config.js"></script>
+<script src="js/core/state.js"></script>
+<script src="js/core/engine.js"></script>
+<script src="js/core/input.js"></script>
+<script src="js/core/controls.js"></script>
+
+<!-- SYSTEMS: shared, scene-agnostic gameplay + rendering -->
+<script src="js/systems/update.js"></script>
+<script src="js/systems/weather.js"></script>
+<script src="js/systems/render.js"></script>
+<script src="js/systems/props.js"></script>
+<script src="js/systems/survival.js"></script>
+<script src="js/systems/combat.js"></script>
+<script src="js/systems/npc.js"></script>
+
+<!-- SCENES: the scene manager + shared scene glue -->
+<script src="js/scenes/manager.js"></script>
+
+<!-- MAPS: underground world-gen + the concrete scenes -->
+<script src="js/maps/world.js"></script>
+<script src="js/maps/underground.js"></script>
+<script src="js/maps/surface_backyard.js"></script>
+
+<!-- BOOT: menu UI + entry point / game loop (loaded last) -->
 <script src="js/menu.js"></script>
 <script src="js/main.js"></script>
 

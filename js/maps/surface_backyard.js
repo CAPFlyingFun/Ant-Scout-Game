@@ -1,5 +1,5 @@
 /* ============================================================
-   scene_surface.js — the surface overworld (top-down free-roam).
+   surface_backyard.js — the surface overworld (top-down free-roam).
    Phase 3: an authored "backyard" theme (SURFACE_THEME) — a textured grassy
    field with collectible FOOD & WATER (which call the Phase 2 stat mutators)
    and decorative props. All content is DATA + a small generic pipeline, so a

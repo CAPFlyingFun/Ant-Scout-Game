@@ -1,7 +1,7 @@
 /* ============================================================
    update.js — shared per-frame helpers: wind, particle spawners, particle
    decay, and the circle-vs-polygon collision solver. These are used by every
-   scene. The shared update() loop lives in scenes.js; scene-specific sim lives
+   scene. The shared update() loop lives in scenes/manager.js; scene-specific sim lives
    in each scene_*.js file.
    ============================================================ */
 

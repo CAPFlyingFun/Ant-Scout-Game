@@ -1,5 +1,5 @@
 /* ============================================================
-   core.js — canvas, resize, grid helpers, camera, transforms
+   engine.js — canvas, resize, grid helpers, camera, transforms
    ============================================================ */
 
 const canvas = document.getElementById('c');

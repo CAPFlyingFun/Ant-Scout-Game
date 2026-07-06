@@ -1,5 +1,5 @@
 /* ============================================================
-   scenes.js — scene manager + shared movement + the shared update()/draw()
+   manager.js — scene manager + shared movement + the shared update()/draw()
                loop + the contextual "door" button.
    ------------------------------------------------------------
    SHARED systems (movement, camera, input, weather, particles, HUD chrome)

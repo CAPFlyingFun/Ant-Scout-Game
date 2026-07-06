@@ -51,4 +51,4 @@ function genWorld() {
 
 // (resetGame removed — the scene manager owns fresh-start logic now:
 //  UndergroundScene.build() generates the world, .enter() places the ant, and
-//  newGame() in scenes.js resets shared flags/particles.)
+//  newGame() in scenes/manager.js resets shared flags/particles.)
