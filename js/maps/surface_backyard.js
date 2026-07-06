@@ -22,6 +22,7 @@ const SurfaceScene = {
   enemies: [],                    // spiders (Phase 4)
   enemyRespawnT: 0,
   npcAnts: [],                    // ambient wander ants (appearance)
+  ants: [],                       // COLONY foragers (Phase 5A) — collect food & haul it to the nest
 
   build() {
     this.worldW = 3600; this.worldH = 2400;
@@ -73,6 +74,15 @@ const SurfaceScene = {
       const y = near ? this.hill.y + (Math.random() - 0.5) * 400 : 60 + Math.random() * (this.worldH - 120);
       this.npcAnts.push(spawnNpcAnt(clamp(x, 40, this.worldW - 40), clamp(y, 40, this.worldH - 40)));
     }
+
+    // --- COLONY foragers (Phase 5A) — the working colony, spawned at the nest ---
+    colonyAnthill = { x: this.hill.x, y: this.hill.y };   // let updateColony() hatch here from any scene
+    this.ants = [];
+    for (let i = 0; i < COLONY.startAnts; i++) {
+      this.ants.push(spawnForager(this.hill.x + (Math.random() * 2 - 1) * CELL * 1.5,
+                                  this.hill.y + (Math.random() * 2 - 1) * CELL * 1.5));
+    }
+    colony.population = this.ants.length;
   },
 
   // a valid spawn: inside bounds, clear of the anthill safe zone, and (optionally)
@@ -103,6 +113,7 @@ const SurfaceScene = {
     updateCollectibles(this.items, dt, it => {
       if (it.kind === 'food')  { const amt = it.noRespawn ? COMBAT.drop.refill : SURFACE_THEME.food.refill;
         addFood(amt); if (!it.noRespawn) it.respawnT = SURFACE_THEME.food.respawnSec; else it.gone = true;
+        depositFood(COLONY.scoutForageBonus);   // the scout's foraging also grows the colony stockpile
         pickupSparkle(it.x, it.y, '#ffd27a'); banner = { text: '+' + amt + ' 🍖', t: 1.2 }; }
       else                     { addWater(SURFACE_THEME.water.refill); it.respawnT = SURFACE_THEME.water.respawnSec;
         pickupSparkle(it.x, it.y, '#8fe0ff'); banner = { text: '+' + SURFACE_THEME.water.refill + ' 💧', t: 1.2 }; }
@@ -113,10 +124,24 @@ const SurfaceScene = {
     // ambient NPC ants wander (appearance only — no collecting yet)
     updateNpcAnts(this.npcAnts, dt, { home: { x: this.hill.x, y: this.hill.y }, bounds: { w: this.worldW, h: this.worldH } });
 
-    // combat: spider AI + the ant's bite (DIG button = BITE here)
+    // COLONY foragers: roam / collect the SAME surface food / haul it to the nest (hatching runs in the shared loop)
+    updateForagers(this.ants, dt, { x: this.hill.x, y: this.hill.y }, this.items, { w: this.worldW, h: this.worldH });
+
+    // combat: spider AI + the ant's bite (DIG button = BITE here).
+    // safeRadius 0 here so spiders CAN reach the nest (5A: the anthill is now a target).
     const ec = SURFACE_THEME.enemies;
-    updateEnemies(this.enemies, dt, { anthill: { x: this.hill.x, y: this.hill.y }, safeRadius: ec.safeRadius, bounds: { w: this.worldW, h: this.worldH } });
+    updateEnemies(this.enemies, dt, { anthill: { x: this.hill.x, y: this.hill.y }, safeRadius: 0, bounds: { w: this.worldW, h: this.worldH } });
     if (input.dig) tryBite(this.enemies);
+
+    // a spider that reaches the anthill gnaws the nest on its attack cooldown (5A: proximity, no nest-seeking AI yet)
+    for (const e of this.enemies) {
+      if (e.dead) continue;
+      const ed = ENEMY_TYPES[e.type];
+      if (Math.hypot(e.x - this.hill.x, e.y - this.hill.y) < this.hill.r + ed.attackRadius * CELL) {
+        e.nestT = (e.nestT || 0) - dt;
+        if (e.nestT <= 0) { e.nestT = ed.attackCooldown; damageNest(ed.attackDamage); }
+      }
+    }
 
     // maintain the spider population
     if (this.enemies.length < ec.count) {
@@ -203,9 +228,13 @@ function drawSurface(s) {
   ctx.fillStyle = '#0a0705';
   ctx.beginPath(); ctx.ellipse(hx, hy, r * 0.34, r * 0.26, 0, 0, 7); ctx.fill();
 
+  drawForagers(s.ants);     // COLONY workers (behind the action)
   drawNpcAnts(s.npcAnts);   // ambient worker ants
   drawEnemies(s.enemies);   // spiders on the ground, below the ant
   drawAnt();
+
+  drawNestHpBar(hx, hy, r);                       // nest health over the mound (only when damaged / attacked)
+  anthillTap = { x: hx - r, y: hy - r * 0.72, w: r * 2, h: r * 1.5 };   // tap the mound -> colony stats panel
 
   // pickup sparkles
   for (const p of sparks) { const sx = w2sX(p.x), sy = w2sY(p.y); ctx.globalAlpha = Math.min(1, p.life / 20); ctx.fillStyle = p.col; ctx.fillRect(sx | 0, sy | 0, 2, 2); }

@@ -3,7 +3,7 @@
    ============================================================ */
 
 // app version (shown next to the menu title). Bump on each release.
-const APP_VERSION = 'v0.4.1';
+const APP_VERSION = 'v0.5.0';
 
 // world grid
 const CELL = 30;              // world px per cell (chunky, zoomed-in)
@@ -88,6 +88,36 @@ const SURVIVAL = {
   nestRefillWater: 8.0,  // water/sec regained inside the nest safe zone
   nestRadius: 2.5,       // cells from home that count as "at the nest"
   lowWarn: 0.25,         // fraction below which a bar pulses as a warning
+};
+
+// ── COLONY (Phase 5A) ─────────────────────────────────────────────
+// The COLONY is a SECOND resource layer, kept strictly separate from the
+// SCOUT's personal survival (stats.hp/food/water). It has its own shared food
+// stockpile, a forager population that hatches from stored food, and nest HP.
+// All values are tunable on device.
+const COLONY = {
+  maxAnts: 50,             // population cap
+  startAnts: 3,            // foragers present at game start
+  foodPerAnt: 25,          // stored food needed to hatch ONE new forager
+  hatchCooldown: 4,        // seconds between hatches (paced, not an instant swarm)
+  startFood: 0,            // colony stockpile at start
+  nestHpMax: 200,
+  nestRegen: 0.5,          // nest HP/sec regen when NO enemy is attacking it (slow self-heal)
+  depositRadius: 2.2,      // cells from anthill where a forager (or the scout) deposits food
+  scoutForageBonus: 4,     // colony food gained each time the SCOUT picks up a surface food item
+};
+
+// Forager = the ONLY ant job in 5A. Built as a data-driven entity + a small
+// state machine ('out'|'toFood'|'home'|'idle') so 5B can add soldier/builder
+// jobs as more states/types on the same ants array without reworking this.
+const FORAGER = {
+  speed: 1.6,              // slower than the scout (3.4) — background workers
+  r: 6,                    // smaller than the scout ant (9) so the player reads as the "hero"
+  wanderJitter: 1.8,       // radians of wander turn
+  searchRadius: 9,         // cells — how far a roaming forager notices a food item
+  carryValue: 12,          // food added to the colony stockpile per item delivered
+  bodyCol: '#b0672f', bodyDk: '#8a4e22',   // distinct from the player ant (#c9542f)
+  idleAtNestSec: 0.6,      // brief pause at the nest after depositing before heading out again
 };
 
 // pure helpers (no state)

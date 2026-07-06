@@ -87,6 +87,19 @@
   </div>
 </div>
 
+<!-- colony stats panel (tap the anthill; read-only in Phase 5A) -->
+<div id="colony" class="overlay hidden">
+  <div class="card">
+    <div class="title small">🐜 The Colony</div>
+    <div class="colrow"><span>🍖 Colony food</span><b id="colFood">0</b></div>
+    <div class="colrow"><span>🐜 Population</span><b id="colPop">0 / 50</b></div>
+    <div class="colrow"><span>❤️ Nest health</span><b id="colNest">0 / 0</b></div>
+    <div class="colrow"><span>📦 Total collected</span><b id="colTotal">0</b></div>
+    <div class="colrow"><span>🥚 Next forager</span><b id="colHatch">0 / 25</b></div>
+    <button id="btnColonyClose" class="btn primary">✓ Close</button>
+  </div>
+</div>
+
 <!-- death -->
 <div id="death" class="overlay hidden">
   <div class="card">
@@ -118,6 +131,7 @@
 <script src="js/systems/props.js"></script>
 <script src="js/systems/survival.js"></script>
 <script src="js/systems/combat.js"></script>
+<script src="js/systems/colony.js"></script>
 <script src="js/systems/npc.js"></script>
 
 <!-- SCENES: the scene manager + shared scene glue -->

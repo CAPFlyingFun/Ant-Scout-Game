@@ -34,6 +34,7 @@ function newGame() {                                          // fresh start fro
   ant.carry = null; ant.hasGem = false;
   parts.length = 0; sparks.length = 0; dust.length = 0; shake = 0;
   resetStats();                                               // start every run at full HP / food / water
+  resetColony();                                              // fresh colony economy (stockpile / population / nest HP)
   scene = null;
   gotoScene('underground');
 }
@@ -82,6 +83,7 @@ function update(dt) {
   applyMovement(dt);           // shared movement/integrate
   scene.resolveCollision();    // scene blocks the ant against its own geometry
   scene.update(dt);            // scene sim: digging / entities / objective / door proximity
+  updateColony(dt, scene.id === 'surface' ? scene.ants : null);   // colony hatch/regen everywhere; foragers breed only on the surface
   updateStats(dt);             // survival drain / regen / nest refill (live play only)
   updateAntCombat(dt);         // i-frames / hit flash / bite cooldown / damage flash decay
 
@@ -101,8 +103,9 @@ function draw() {
     drawUI();                                                 // joystick (+ DIG/GRAB when scene.canDig)
     drawWeatherChip();                                        // shared HUD chrome
     drawStats();                                              // shared HP / food / water bars (both scenes)
+    drawColonyReadout();                                      // glanceable colony pop / stockpile (both scenes)
     drawBanner();
-    depthPill = null;                                         // reset the tap target; the scene HUD repopulates it
+    depthPill = null; anthillTap = null;                      // reset tap targets; the scene draw repopulates them
     if (scene && scene.drawHUD) scene.drawHUD();              // scene-specific HUD (underground: objective + depth)
     if (intro > 0) drawIntro();
     if (won) drawWin();

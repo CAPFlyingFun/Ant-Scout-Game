@@ -15,6 +15,7 @@ function onDown(e) {
     const x = p.clientX, y = p.clientY;
     ui = uiLayout();
     if (inRect(x, y, depthPill)) { unitIx = (unitIx + 1) % UNITS.length; pointers.set(id, 'ui'); }
+    else if (inRect(x, y, anthillTap)) { openColony(); pointers.set(id, 'ui'); }   // tap the anthill -> colony stats
     else if (inRect(x, y, weather.chip)) { requestWeather(); pointers.set(id, 'ui'); }
     else if (scene && (scene.canDig || scene.canBite) && hit(x, y, ui.digX, ui.digY, ui.digR)) {
       if (scene.canDig) {                                     // auto-dig double-tap (underground only)

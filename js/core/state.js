@@ -78,3 +78,16 @@ let won = false, intro = 1, t = 0;
 let banner = null;
 let depthPill = null;
 let winBtn = null;
+let anthillTap = null;        // screen rect of the surface anthill (tap -> colony stats panel)
+
+// ── COLONY economy (Phase 5A) ─────────────────────────────────────
+// GLOBAL + persists across scenes (SEPARATE from the scout's stats). The forager
+// ENTITIES live on the surface scene (SurfaceScene.ants); this is the economy.
+const colony = {
+  food: 0,                    // shared stockpile (NOT stats.food, which is the scout's hunger)
+  population: 0,              // current forager count (mirrors the surface ants array for the HUD)
+  nestHp: 0, nestHpMax: 0,    // set from COLONY on new game
+  hatchT: 0,                  // hatch cooldown timer
+  totalCollected: 0,          // lifetime food delivered (for the stats panel)
+  underAttack: false,         // true while an enemy is damaging the nest (pauses regen, drives UI pulse)
+};

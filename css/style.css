@@ -75,6 +75,11 @@ canvas {
 }
 .seg-btn.active { background: #5ab054; color: #0b0a0d; border-color: #5ab054; }
 .wxline { margin-top: 12px; font-size: 13px; color: #8fbfe0; }
+/* colony stats panel rows */
+.colrow { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 4px; border-bottom: 1px solid rgba(255, 220, 160, .10); font-size: 15px; }
+.colrow span { color: #cdbfa8; }
+.colrow b { color: #ffe1a6; font-weight: 800; }
 .corner-btn {
   position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: calc(8px + env(safe-area-inset-left, 0px));
   z-index: 9; width: 38px; height: 38px; border: 0; border-radius: 10px;

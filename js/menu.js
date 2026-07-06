@@ -10,6 +10,7 @@ function showScreen(s) {
   gameScreen = s;
   $('menu').classList.toggle('hidden', s !== 'menu');
   $('settings').classList.toggle('hidden', s !== 'settings');
+  const co = $('colony'); if (co) co.classList.toggle('hidden', s !== 'colony');       // colony stats panel
   $('btnPause').classList.toggle('hidden', s !== 'playing');
   const ec = $('editctrl'); if (ec) ec.classList.toggle('hidden', s !== 'editing');   // control-customize toolbar
   const act = $('btnAction'); if (act && s !== 'playing') act.classList.add('hidden');   // door button only in-game
@@ -17,8 +18,20 @@ function showScreen(s) {
   if (s === 'settings') refreshSettingsUI();
   if (s === 'menu') updateMenuText();
   if (s === 'editing') syncEditUI();
+  if (s === 'colony') refreshColonyUI();
 }
 function openSettings() { prevScreen = (gameScreen === 'playing') ? 'playing' : 'menu'; showScreen('settings'); }
+
+// colony stats panel (read-only in 5A) — tapping the anthill pauses to show it
+function openColony() { if (gameScreen === 'playing') showScreen('colony'); }
+function refreshColonyUI() {
+  const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  set('colFood', Math.floor(colony.food));
+  set('colPop', colony.population + ' / ' + COLONY.maxAnts);
+  set('colNest', Math.ceil(colony.nestHp) + ' / ' + colony.nestHpMax);
+  set('colTotal', colony.totalCollected);
+  set('colHatch', Math.floor(colony.food) + ' / ' + COLONY.foodPerAnt);
+}
 
 function setActive(containerId, attr, val) {
   document.querySelectorAll('#' + containerId + ' .seg-btn').forEach(b =>
@@ -46,6 +59,9 @@ function wireMenu() {
   $('btnPause').onclick    = openSettings;
   $('btnBack').onclick     = () => showScreen(prevScreen);
   const act = $('btnAction'); if (act) act.onclick = () => { if (actionTarget) gotoScene(actionTarget); };  // door
+
+  // colony stats panel (read-only in 5A)
+  const colClose = $('btnColonyClose'); if (colClose) colClose.onclick = () => showScreen('playing');
 
   // death overlay buttons
   $('btnRespawn').onclick  = () => { hideDeath(); resetStats(); newGame(); showScreen('playing'); };
