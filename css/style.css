@@ -35,23 +35,24 @@ canvas {
   touch-action: none;
 }
 
-/* invisible probe: height resolves to the top safe-area inset, read by resize() */
+/* invisible probe: its padding resolves to the four safe-area insets, read by resize() */
 #safeprobe {
-  position: fixed; top: 0; left: 0; width: 0;
-  height: env(safe-area-inset-top, 0px);
+  position: fixed; top: 0; left: 0; width: 0; height: 0;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   pointer-events: none; visibility: hidden;
 }
 
 /* ---- menu / settings overlays ---- */
 .overlay {
   position: fixed; inset: 0; z-index: 10;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; overflow-y: auto; -webkit-overflow-scrolling: touch;
   background: rgba(6, 5, 4, .55); backdrop-filter: blur(2px);
-  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
 }
 .overlay.hidden, .hidden { display: none !important; }
 .card {
-  width: 100%; max-width: 340px; background: rgba(20, 16, 12, .92);
+  width: 100%; max-width: 340px; margin: auto;    /* auto margins center it, and let it scroll when taller than a short landscape screen */
+  background: rgba(20, 16, 12, .92);
   border: 1px solid rgba(255, 220, 160, .18); border-radius: 16px; padding: 22px;
   color: #f3e8d8; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, .5);
 }

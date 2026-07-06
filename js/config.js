@@ -3,7 +3,7 @@
    ============================================================ */
 
 // app version (shown next to the menu title). Bump on each release.
-const APP_VERSION = 'v0.0.7';
+const APP_VERSION = 'v0.0.8';
 
 // world grid
 const CELL = 30;              // world px per cell (chunky, zoomed-in)

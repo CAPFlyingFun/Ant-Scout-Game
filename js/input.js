@@ -6,10 +6,12 @@
 function uiLayout() {
   const pad = Math.max(70, Math.min(W, H) * 0.16);
   joy.R = Math.max(52, Math.min(W, H) * 0.11);
-  joyRest.x = pad; joyRest.y = H - pad;
+  // keep controls clear of side notches (landscape) and the home indicator (bottom)
+  const bottom = H - pad - safeBottom;
+  joyRest.x = pad + safeLeft; joyRest.y = bottom;
   return {
-    digX: W - pad, digY: H - pad, digR: joy.R * 0.92,
-    carryX: W - pad - joy.R * 1.7, carryY: H - pad + joy.R * 0.35, carryR: joy.R * 0.62,
+    digX: W - pad - safeRight, digY: bottom, digR: joy.R * 0.92,
+    carryX: W - pad - safeRight - joy.R * 1.7, carryY: bottom + joy.R * 0.35, carryR: joy.R * 0.62,
   };
 }
 

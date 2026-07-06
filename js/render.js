@@ -299,9 +299,11 @@ function drawHUD() {
   const obj = treasure.home ? 'Treasure secured'
             : treasure.found ? (ant.carry === treasure ? 'Carry the gem up to the entrance ↑' : 'Grab the gem, then carry it home')
             : 'Objective: dig down and find the buried gem';
-  const oy = 10 + safeTop;   // clear the notch / status bar
-  ctx.fillStyle = 'rgba(10,8,6,.5)'; roundRect(52, oy, ctx.measureText(obj).width + 22, 30, 8); ctx.fill();
-  ctx.fillStyle = '#ffe9c8'; ctx.fillText(obj, 63, oy + 20);
+  // Own row, below the ☰ button + depth pill, so it never collides with the
+  // depth readout (portrait) or the menu button (landscape notch side).
+  const ox = 10 + safeLeft, oy = safeTop + 52;
+  ctx.fillStyle = 'rgba(10,8,6,.5)'; roundRect(ox, oy, ctx.measureText(obj).width + 22, 30, 8); ctx.fill();
+  ctx.fillStyle = '#ffe9c8'; ctx.fillText(obj, ox + 11, oy + 20);
 
   drawWeatherChip();
 
@@ -310,8 +312,9 @@ function drawHUD() {
     ctx.globalAlpha = Math.min(1, banner.t * 2);
     ctx.font = '700 18px -apple-system,sans-serif';
     const bw = ctx.measureText(banner.text).width + 34;
-    ctx.fillStyle = 'rgba(12,10,8,.72)'; roundRect((W - bw) / 2, 88, bw, 38, 10); ctx.fill();
-    ctx.fillStyle = '#fff4d6'; ctx.textAlign = 'center'; ctx.fillText(banner.text, W / 2, 113); ctx.textAlign = 'start';
+    const by = 128 + safeTop;    // below the stacked top-left HUD so it never overlaps
+    ctx.fillStyle = 'rgba(12,10,8,.72)'; roundRect((W - bw) / 2, by, bw, 38, 10); ctx.fill();
+    ctx.fillStyle = '#fff4d6'; ctx.textAlign = 'center'; ctx.fillText(banner.text, W / 2, by + 25); ctx.textAlign = 'start';
     ctx.globalAlpha = 1;
     if (banner.t <= 0 && banner.text.indexOf('home') < 0) banner = null;
   }
@@ -331,7 +334,7 @@ function drawWeatherChip() {
   }
   ctx.font = '700 13px -apple-system,sans-serif';
   const w = Math.min(W - 20, ctx.measureText(label).width + 20);
-  const x = 10, y = 46 + safeTop, h = 26;
+  const x = 10 + safeLeft, y = safeTop + 90, h = 26;   // row 3, below the objective pill
   ctx.fillStyle = 'rgba(10,8,6,.5)'; roundRect(x, y, w, h, 8); ctx.fill();
   ctx.fillStyle = '#cfe6ff'; ctx.fillText(label, x + 10, y + 18);
   weather.chip = { x, y, w, h };
@@ -344,7 +347,7 @@ function drawDepthMeter() {
   const label = '⛏ ' + fmtDepth(cur);
   ctx.font = '800 16px -apple-system,sans-serif';
   const tw = ctx.measureText(label).width;
-  const pw = tw + 26, ph = 32, px = W - pw - 10, py = 10 + safeTop;
+  const pw = tw + 26, ph = 32, px = W - pw - 10 - safeRight, py = 10 + safeTop;
   ctx.fillStyle = 'rgba(10,8,6,.55)'; roundRect(px, py, pw, ph, 9); ctx.fill();
   ctx.strokeStyle = 'rgba(255,220,160,.25)'; ctx.lineWidth = 1; ctx.stroke();
   ctx.fillStyle = '#ffe1a6'; ctx.fillText(label, px + 13, py + 21);
@@ -352,7 +355,7 @@ function drawDepthMeter() {
   ctx.fillText('tap', px + pw - 19, py + ph - 4);
   depthPill = { x: px, y: py, w: pw, h: ph };
 
-  const gx = W - 7, gTop = py + ph + 12, gBot = H * 0.55;
+  const gx = W - 7 - safeRight, gTop = py + ph + 12, gBot = H * 0.55;
   if (gBot > gTop + 20) {
     const maxD = (ROWS - surfaceRow) * MM_PER_CELL;
     ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fillRect(gx - 2, gTop, 4, gBot - gTop);

@@ -11,10 +11,17 @@ function resize() {
   canvas.width = Math.floor(W * DPR); canvas.height = Math.floor(H * DPR);
   canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  // Read the notch / status-bar inset so the canvas HUD can sit below it
-  // (the page uses viewport-fit=cover). #safeprobe is height:env(safe-area-inset-top).
+  // Read all four safe-area insets (notch / status bar / home indicator) so the
+  // canvas HUD dodges them in BOTH orientations (page uses viewport-fit=cover).
+  // #safeprobe's padding is set to the env(safe-area-inset-*) values in CSS.
   const probe = document.getElementById('safeprobe');
-  safeTop = probe ? probe.getBoundingClientRect().height : 0;
+  if (probe) {
+    const cs = getComputedStyle(probe);
+    safeTop    = parseFloat(cs.paddingTop)    || 0;
+    safeLeft   = parseFloat(cs.paddingLeft)   || 0;
+    safeRight  = parseFloat(cs.paddingRight)  || 0;
+    safeBottom = parseFloat(cs.paddingBottom) || 0;
+  }
 }
 
 // grid queries

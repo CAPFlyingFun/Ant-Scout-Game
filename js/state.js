@@ -4,7 +4,8 @@
 
 // viewport
 let W = 0, H = 0, DPR = 1;
-let safeTop = 0;             // top safe-area inset (notch / status bar) in CSS px
+// safe-area insets (notch / status bar / home indicator) in CSS px
+let safeTop = 0, safeLeft = 0, safeRight = 0, safeBottom = 0;
 
 // screens + environment
 let gameScreen = 'menu';                                   // 'menu' | 'settings' | 'playing'
