@@ -129,4 +129,7 @@ canvas {
 .swatch.active { border-color: #ffd23a; box-shadow: 0 0 10px rgba(255,210,58,.5); }
 .swatch.disabled { opacity: .35; filter: grayscale(.6); cursor: default; }
 .locked-row { opacity: .55; }
+.mapgo { flex: 0 0 auto; width: auto; margin: 0; padding: 8px 16px; border: 0; border-radius: 9px;
+  background: #e0a44a; color: #3a2400; font-size: 14px; font-weight: 700; cursor: pointer; }
+.mapgo:active { transform: scale(.96); }
 .action-btn.locked { opacity: .75; filter: saturate(.5); }

@@ -125,6 +125,28 @@
   </div>
 </div>
 
+<!-- pause hub (opened by the in-game ☰ corner button) -->
+<div id="pause" class="overlay hidden">
+  <div class="card">
+    <div class="title small">⏸ Paused</div>
+    <button id="btnResume" class="btn primary">▶ Resume</button>
+    <button id="btnPauseMap" class="btn">🗺️ Map &amp; travel</button>
+    <button id="btnPauseUpgrades" class="btn">🏆 Upgrades</button>
+    <button id="btnPauseSettings" class="btn">⚙ Settings</button>
+    <button id="btnPauseQuit" class="btn">☰ Quit to menu</button>
+  </div>
+</div>
+
+<!-- map / fast-travel (from the pause hub) -->
+<div id="map" class="overlay hidden">
+  <div class="card">
+    <div class="title small">🗺️ Map</div>
+    <div class="jobhint">Fast-travel to any area you've unlocked.</div>
+    <div id="mapList"></div>
+    <button id="btnMapClose" class="btn primary">✓ Back</button>
+  </div>
+</div>
+
 <!-- death -->
 <div id="death" class="overlay hidden">
   <div class="card">
