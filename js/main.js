@@ -33,6 +33,7 @@ window.addEventListener('resize', resize);
 resize();
 loadControlLayout();                  // restore any custom on-screen control layout
 initEnvironment();                    // decide starting weather (live / manual / offline) from saved settings
+loadProgress();                       // restore 💎 wins / unlocks / skin from previous sessions
 registerScene(UndergroundScene);      // register every scene with the manager…
 registerScene(SurfaceScene);          // …adding a future scene is just one more line here
 newGame();                            // build the starting world so it's a live backdrop behind the menu

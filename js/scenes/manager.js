@@ -124,7 +124,10 @@ function drawActionButton() {
   const p = (gameScreen === 'playing' && !won && scene && scene.actionPrompt) ? scene.actionPrompt() : null;
   if (p) {
     actionTarget = p.to;
+    actionLocked = !!p.locked;
+    actionLockMsg = p.msg || '';
     if (btn.textContent !== p.label) btn.textContent = p.label;
+    btn.classList.toggle('locked', actionLocked);
     const L = uiLayout();                                     // customizable position + size
     btn.style.left = L.actX + 'px';
     btn.style.top = L.actY + 'px';
@@ -132,6 +135,7 @@ function drawActionButton() {
     btn.classList.remove('hidden');
   } else {
     actionTarget = null;
+    actionLocked = false; actionLockMsg = '';
     btn.classList.add('hidden');
   }
 }

@@ -28,6 +28,10 @@ const SurfaceScene = {
     this.worldW = 3600; this.worldH = 2400;
     this.hill.x = this.worldW * 0.32;
     this.hill.y = this.worldH * 0.42;
+    // travel landmarks (Phase 6): the park gate up in the top-right corner of the
+    // yard, the house door on the right edge — walk to them to travel (if unlocked)
+    this.parkGate = { x: this.worldW * 0.86, y: 120, r: 90 };
+    this.houseDoor = { x: this.worldW - 90, y: this.worldH * 0.62, r: 90 };
     const C = SURFACE_THEME.counts;
 
     // --- decorative props (may sit near the anthill) ---
@@ -124,13 +128,14 @@ const SurfaceScene = {
     // ambient NPC ants wander (appearance only — no collecting yet)
     updateNpcAnts(this.npcAnts, dt, { home: { x: this.hill.x, y: this.hill.y }, bounds: { w: this.worldW, h: this.worldH } });
 
-    // COLONY foragers: roam / collect the SAME surface food / haul it to the nest (hatching runs in the shared loop)
-    updateForagers(this.ants, dt, { x: this.hill.x, y: this.hill.y }, this.items, { w: this.worldW, h: this.worldH });
+    // COLONY ants: foragers gather, soldiers defend, builders repair (5B).
+    // Hatching runs in the shared loop; reconciler (inside updateAnts) applies the player's role split.
+    updateAnts(this.ants, dt, { x: this.hill.x, y: this.hill.y }, this.items, { w: this.worldW, h: this.worldH }, this.enemies);
 
     // combat: spider AI + the ant's bite (DIG button = BITE here).
-    // safeRadius 0 here so spiders CAN reach the nest (5A: the anthill is now a target).
+    // safeRadius 0 so spiders CAN reach the nest; `defenders` lets a spider fight a soldier that intercepts it.
     const ec = SURFACE_THEME.enemies;
-    updateEnemies(this.enemies, dt, { anthill: { x: this.hill.x, y: this.hill.y }, safeRadius: 0, bounds: { w: this.worldW, h: this.worldH } });
+    updateEnemies(this.enemies, dt, { anthill: { x: this.hill.x, y: this.hill.y }, safeRadius: 0, bounds: { w: this.worldW, h: this.worldH }, defenders: this.ants });
     if (input.dig) tryBite(this.enemies);
 
     // a spider that reaches the anthill gnaws the nest on its attack cooldown (5A: proximity, no nest-seeking AI yet)
@@ -156,10 +161,23 @@ const SurfaceScene = {
 
   draw() { drawSurface(this); },
 
-  // door: within a small radius of the anthill hole -> go back underground
+  // doors: nearest in-range of — the anthill (down), the park gate, the house door.
+  // Locked destinations return a 🔒 prompt; tapping shows how many gems remain.
   actionPrompt() {
-    const d = Math.hypot(ant.x - this.hill.x, ant.y - this.hill.y);
-    return d < this.hill.r + 34 ? { label: '🕳️ Enter anthill', to: 'underground' } : null;
+    const cands = [];
+    const dh = Math.hypot(ant.x - this.hill.x, ant.y - this.hill.y);
+    if (dh < this.hill.r + 34) cands.push({ d: dh, p: { label: '🕳️ Enter anthill', to: 'underground' } });
+    const dp = Math.hypot(ant.x - this.parkGate.x, ant.y - this.parkGate.y);
+    if (dp < this.parkGate.r) cands.push({ d: dp, p: isUnlocked('park')
+      ? { label: '🌳 To the park', to: 'park' }
+      : { label: '🔒 Park', to: null, locked: true, msg: 'Win ' + winsUntil('park') + ' more 💎 to unlock the Park' } });
+    const dd = Math.hypot(ant.x - this.houseDoor.x, ant.y - this.houseDoor.y);
+    if (dd < this.houseDoor.r) cands.push({ d: dd, p: isUnlocked('house')
+      ? { label: '🏠 Into the house', to: 'house' }
+      : { label: '🔒 House', to: null, locked: true, msg: 'Win ' + winsUntil('house') + ' more 💎 to unlock the House' } });
+    if (!cands.length) return null;
+    cands.sort((a, b) => a.d - b.d);
+    return cands[0].p;
   },
   // (no isSafeZone — the surface replenishes via food/water sources, not a nest)
 };
@@ -175,40 +193,27 @@ function drawSurface(s) {
   const mx0 = cam.x - W / 2 - 60, mx1 = cam.x + W / 2 + 60, my0 = cam.y - H / 2 - 60, my1 = cam.y + H / 2 + 60;
   const near = (x, y) => x >= mx0 && x <= mx1 && y >= my0 && y <= my1;
 
-  // subtle deterministic ground speckle so the base isn't flat (culled to viewport)
-  for (let gx = Math.floor(mx0 / 46) * 46; gx < mx1; gx += 46) {
-    for (let gy = Math.floor(my0 / 46) * 46; gy < my1; gy += 46) {
-      const h = hash01(gx * 0.13 + gy * 0.017);
-      if (h < 0.55) continue;
-      const sx = w2sX(gx + hash01(gx * 1.1 + gy) * 34 - 17), sy = w2sY(gy + hash01(gx + gy * 1.1) * 34 - 17);
-      ctx.fillStyle = h < 0.8 ? 'rgba(0,0,0,.07)' : 'rgba(230,240,200,.06)';
-      ctx.fillRect(sx | 0, sy | 0, 3, 3);
-    }
-  }
+  drawGroundSpeckle(mx0, mx1, my0, my1);
 
   // props (behind collectibles), culled to the viewport
-  for (const p of s.props) {
-    if (!near(p.x, p.y)) continue;
-    const sx = w2sX(p.x), sy = w2sY(p.y);
-    if (p.kind === 'tuft') {
-      ctx.strokeStyle = cols[(p.seed % cols.length + cols.length) % cols.length]; ctx.lineWidth = 2; ctx.lineCap = 'round';
-      for (let b = -1; b <= 1; b++) { ctx.beginPath(); ctx.moveTo(sx + b * 3, sy + 3); ctx.lineTo(sx + b * 3 + Math.cos(p.rot + b * 0.6) * 3, sy + 3 - 11 * p.s); ctx.stroke(); }
-    } else if (p.kind === 'rock') {
-      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(sx, sy + 3 * p.s, 9 * p.s, 4 * p.s, 0, 0, 7); ctx.fill();
-      ctx.fillStyle = '#8b8a86'; ctx.beginPath(); ctx.ellipse(sx, sy, 8 * p.s, 6 * p.s, p.rot, 0, 7); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.ellipse(sx - 2, sy - 2, 3 * p.s, 2 * p.s, p.rot, 0, 7); ctx.fill();
-    } else if (p.kind === 'twig') {
-      ctx.strokeStyle = '#6e4a28'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-      const a = p.rot, len = 12 * p.s;
-      ctx.beginPath(); ctx.moveTo(sx - Math.cos(a) * len, sy - Math.sin(a) * len); ctx.lineTo(sx + Math.cos(a) * len, sy + Math.sin(a) * len); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + Math.cos(a + 1) * len * 0.5, sy + Math.sin(a + 1) * len * 0.5); ctx.stroke();
-    } else { // flower
-      ctx.strokeStyle = '#4e8a3a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sx, sy + 5); ctx.lineTo(sx, sy - 3); ctx.stroke();
-      const petal = ['#e86a8a', '#e8c84a', '#c98ae0', '#ff9a5a'][(p.seed % 4 + 4) % 4];
-      ctx.fillStyle = petal;
-      for (let k = 0; k < 5; k++) { const a = p.rot + k * 1.256; ctx.beginPath(); ctx.arc(sx + Math.cos(a) * 3, sy - 3 + Math.sin(a) * 3, 2.2, 0, 7); ctx.fill(); }
-      ctx.fillStyle = '#f5e28a'; ctx.beginPath(); ctx.arc(sx, sy - 3, 1.8, 0, 7); ctx.fill();
-    }
+  for (const p of s.props) { if (near(p.x, p.y)) drawProp(p, w2sX(p.x), w2sY(p.y), cols); }
+
+  // travel landmarks: park gate (two posts + worn path) and house door (step + mat)
+  if (near(s.parkGate.x, s.parkGate.y)) {
+    const gx = w2sX(s.parkGate.x), gy = w2sY(s.parkGate.y);
+    ctx.fillStyle = 'rgba(80,60,30,.25)'; ctx.beginPath(); ctx.ellipse(gx, gy + 26, 60, 16, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#7a5a30';
+    ctx.fillRect(gx - 52, gy - 46, 12, 72); ctx.fillRect(gx + 40, gy - 46, 12, 72);
+    ctx.fillStyle = '#8a6a3c'; ctx.fillRect(gx - 52, gy - 46, 104, 9);
+    if (!isUnlocked('park')) { ctx.font = '20px -apple-system,sans-serif'; ctx.fillText('🔒', gx - 10, gy - 54); }
+  }
+  if (near(s.houseDoor.x, s.houseDoor.y)) {
+    const hx2 = w2sX(s.houseDoor.x), hy2 = w2sY(s.houseDoor.y);
+    ctx.fillStyle = '#9a8a6a'; ctx.fillRect(hx2 - 22, hy2 - 70, 60, 140);          // wall sliver
+    ctx.fillStyle = '#5a4630'; ctx.fillRect(hx2 - 12, hy2 - 44, 40, 88);           // door
+    ctx.fillStyle = '#2a2018'; ctx.fillRect(hx2 - 12, hy2 - 6, 40, 12);            // gap underneath
+    ctx.fillStyle = '#7a6a4a'; ctx.beginPath(); ctx.ellipse(hx2 - 34, hy2, 22, 34, 0, 0, 7); ctx.fill();  // mat
+    if (!isUnlocked('house')) { ctx.font = '20px -apple-system,sans-serif'; ctx.fillText('🔒', hx2 - 44, hy2 - 50); }
   }
 
   // collectibles (skip taken), culled
@@ -228,7 +233,7 @@ function drawSurface(s) {
   ctx.fillStyle = '#0a0705';
   ctx.beginPath(); ctx.ellipse(hx, hy, r * 0.34, r * 0.26, 0, 0, 7); ctx.fill();
 
-  drawForagers(s.ants);     // COLONY workers (behind the action)
+  drawAnts(s.ants);         // COLONY workers by job (foragers/soldiers/builders), behind the action
   drawNpcAnts(s.npcAnts);   // ambient worker ants
   drawEnemies(s.enemies);   // spiders on the ground, below the ant
   drawAnt();
@@ -236,13 +241,5 @@ function drawSurface(s) {
   drawNestHpBar(hx, hy, r);                       // nest health over the mound (only when damaged / attacked)
   anthillTap = { x: hx - r, y: hy - r * 0.72, w: r * 2, h: r * 1.5 };   // tap the mound -> colony stats panel
 
-  // pickup sparkles
-  for (const p of sparks) { const sx = w2sX(p.x), sy = w2sY(p.y); ctx.globalAlpha = Math.min(1, p.life / 20); ctx.fillStyle = p.col; ctx.fillRect(sx | 0, sy | 0, 2, 2); }
-  ctx.globalAlpha = 1;
-
-  // night ambient tint over the whole scene
-  if (!day) { ctx.fillStyle = 'rgba(12,20,46,.42)'; ctx.fillRect(0, 0, W, H); }
-
-  // precipitation overlay (full screen for a top-down view)
-  drawPrecip(H);
+  drawSurfaceFx(day);
 }

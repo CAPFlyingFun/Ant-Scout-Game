@@ -110,3 +110,23 @@ canvas {
 }
 .edit-btn.primary { background: #e0a44a; color: #3a2400; }
 .edit-btn:active { transform: scale(.97); }
+
+/* ── Phase 5B: colony role assignment ── */
+.jobrow b { min-width: 22px; text-align: center; }
+.jobctl { display: inline-flex; align-items: center; gap: 10px; }
+.jobbtn {
+  width: 30px; height: 30px; border: 0; border-radius: 8px;
+  background: rgba(255,255,255,.10); color: #f3e8d8;
+  font-size: 20px; font-weight: 800; line-height: 1; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.jobbtn:active { transform: scale(.92); background: rgba(255,255,255,.18); }
+.jobhint { margin: 8px 2px 4px; font-size: 11px; color: #9a8f7c; text-align: center; }
+
+/* ── Phase 6: progress panel ── */
+.swatchrow { display: flex; gap: 12px; justify-content: center; margin: 8px 0 4px; }
+.swatch { width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); cursor: pointer; }
+.swatch.active { border-color: #ffd23a; box-shadow: 0 0 10px rgba(255,210,58,.5); }
+.swatch.disabled { opacity: .35; filter: grayscale(.6); cursor: default; }
+.locked-row { opacity: .55; }
+.action-btn.locked { opacity: .75; filter: saturate(.5); }

@@ -79,6 +79,16 @@ let banner = null;
 let depthPill = null;
 let winBtn = null;
 let anthillTap = null;        // screen rect of the surface anthill (tap -> colony stats panel)
+let actionLocked = false;     // the contextual door button is showing a 🔒 prompt
+let actionLockMsg = '';       // banner text explaining what unlocks it
+
+// ── PROGRESSION (Phase 6) — persists via localStorage ─────────────
+const progress = {
+  wins: 0,                    // 💎 gems brought home (lifetime)
+  unlocked: {},               // id -> true (park / skins / house)
+  skin: 0,                    // index into PROGRESSION.skins (vector colour of the hand-drawn scout)
+  lastUnlock: '',             // label shown on the win screen when something new unlocked
+};
 
 // ── COLONY economy (Phase 5A) ─────────────────────────────────────
 // GLOBAL + persists across scenes (SEPARATE from the scout's stats). The forager
@@ -90,4 +100,7 @@ const colony = {
   hatchT: 0,                  // hatch cooldown timer
   totalCollected: 0,          // lifetime food delivered (for the stats panel)
   underAttack: false,         // true while an enemy is damaging the nest (pauses regen, drives UI pulse)
+  // Phase 5B — desired role counts (foragers = population - soldier - builder).
+  // A reconciler morphs ants toward these each surface frame. Default = 0/0 = all forage (== 5A).
+  jobs: { soldier: 0, builder: 0 },
 };

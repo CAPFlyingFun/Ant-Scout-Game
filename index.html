@@ -35,8 +35,22 @@
     <div class="title">🐜 Ant Scout <span id="ver" class="ver"></span></div>
     <div class="subtitle">The Buried Cavern</div>
     <button id="btnPlay" class="btn primary">▶ Play</button>
+    <button id="btnProgress" class="btn">🏆 Progress</button>
     <button id="btnSettings" class="btn">⚙ Settings</button>
     <div id="menuWx" class="wxline">—</div>
+  </div>
+</div>
+
+<!-- 🏆 progress / unlocks -->
+<div id="progress" class="overlay hidden">
+  <div class="card">
+    <div class="title small">🏆 Progress</div>
+    <div class="colrow"><span>Gems brought home</span><b id="prGems">💎 0</b></div>
+    <div class="label">Unlocks</div>
+    <div id="prMilestones"></div>
+    <div class="label" id="prSkinLabel">Scout colour</div>
+    <div id="prSkins" class="swatchrow"></div>
+    <button id="btnProgressClose" class="btn primary">✓ Close</button>
   </div>
 </div>
 
@@ -96,6 +110,17 @@
     <div class="colrow"><span>❤️ Nest health</span><b id="colNest">0 / 0</b></div>
     <div class="colrow"><span>📦 Total collected</span><b id="colTotal">0</b></div>
     <div class="colrow"><span>🥚 Next forager</span><b id="colHatch">0 / 25</b></div>
+
+    <div class="label">Assign roles</div>
+    <div class="colrow jobrow"><span>🍃 Foragers</span><b id="colForagers">0</b></div>
+    <div class="colrow jobrow"><span>⚔️ Soldiers</span>
+      <span class="jobctl"><button class="jobbtn" data-job="soldier" data-d="-1">−</button><b id="colSoldiers">0</b><button class="jobbtn" data-job="soldier" data-d="1">+</button></span>
+    </div>
+    <div class="colrow jobrow"><span>🔨 Builders</span>
+      <span class="jobctl"><button class="jobbtn" data-job="builder" data-d="-1">−</button><b id="colBuilders">0</b><button class="jobbtn" data-job="builder" data-d="1">+</button></span>
+    </div>
+    <div class="jobhint">🍃 gather food · ⚔️ defend the nest · 🔨 repair it</div>
+
     <button id="btnColonyClose" class="btn primary">✓ Close</button>
   </div>
 </div>
@@ -126,6 +151,7 @@
 
 <!-- SYSTEMS: shared, scene-agnostic gameplay + rendering -->
 <script src="js/systems/update.js"></script>
+<script src="js/systems/sprites.js"></script>
 <script src="js/systems/weather.js"></script>
 <script src="js/systems/render.js"></script>
 <script src="js/systems/props.js"></script>
@@ -133,6 +159,7 @@
 <script src="js/systems/combat.js"></script>
 <script src="js/systems/colony.js"></script>
 <script src="js/systems/npc.js"></script>
+<script src="js/systems/progression.js"></script>
 
 <!-- SCENES: the scene manager + shared scene glue -->
 <script src="js/scenes/manager.js"></script>
@@ -141,6 +168,8 @@
 <script src="js/maps/world.js"></script>
 <script src="js/maps/underground.js"></script>
 <script src="js/maps/surface_backyard.js"></script>
+<script src="js/maps/surface_park.js"></script>
+<script src="js/maps/house.js"></script>
 
 <!-- BOOT: menu UI + entry point / game loop (loaded last) -->
 <script src="js/menu.js"></script>

@@ -3,7 +3,7 @@
    ============================================================ */
 
 // app version (shown next to the menu title). Bump on each release.
-const APP_VERSION = 'v0.5.0';
+const APP_VERSION = 'v0.7.0';
 
 // world grid
 const CELL = 30;              // world px per cell (chunky, zoomed-in)
@@ -45,6 +45,17 @@ const ENEMY_TYPES = {
     attackCooldown: 1.1,   // seconds between its hits
     r: 12,                 // body radius (bigger than the ant's 9)
     bodyCol: '#2b2b30', legCol: '#17171b', eyeCol: '#c0392b',
+  },
+  beetle: {                // household tank: slow, chunky, hits softer but takes 5 bites
+    hp: 5,
+    speed: 1.0,
+    detectRadius: 6, loseRadius: 9,
+    attackRadius: 0.9,
+    attackDamage: 10,
+    attackCooldown: 1.3,
+    r: 11,
+    sprite: true,          // drawn from the bug atlas (random colour per spawn)
+    bodyCol: '#4a3626', legCol: '#241a10', eyeCol: '#c0392b',   // vector fallback tint
   },
 };
 
@@ -105,11 +116,15 @@ const COLONY = {
   nestRegen: 0.5,          // nest HP/sec regen when NO enemy is attacking it (slow self-heal)
   depositRadius: 2.2,      // cells from anthill where a forager (or the scout) deposits food
   scoutForageBonus: 4,     // colony food gained each time the SCOUT picks up a surface food item
+  // nest fall (5B): still recoverable, but real stakes now that soldiers can defend
+  nestFallFoodLoss: 0.5,   // fraction of stored food lost when the nest falls
+  nestFallAntLoss: 0.3,    // fraction of population lost when the nest falls
+  nestFallHpRefill: 0.35,  // nest HP restored to this fraction after a fall
 };
 
-// Forager = the ONLY ant job in 5A. Built as a data-driven entity + a small
-// state machine ('out'|'toFood'|'home'|'idle') so 5B can add soldier/builder
-// jobs as more states/types on the same ants array without reworking this.
+// Forager = the default ant job. Built as a data-driven entity + a small state
+// machine ('out'|'toFood'|'home'|'idle'). Phase 5B adds soldier/builder JOBS as
+// a `job` field + behavior branch on the SAME ants array — see JOBS/SOLDIER/BUILDER.
 const FORAGER = {
   speed: 1.6,              // slower than the scout (3.4) — background workers
   r: 6,                    // smaller than the scout ant (9) so the player reads as the "hero"
@@ -120,6 +135,101 @@ const FORAGER = {
   idleAtNestSec: 0.6,      // brief pause at the nest after depositing before heading out again
 };
 
+// ── ROLES (Phase 5B) ──────────────────────────────────────────────
+// Jobs are BEHAVIORS on the same ants array (each ant has a `job`), NOT separate
+// arrays. The player assigns how the population splits via the colony panel; a
+// reconciler morphs foragers <-> soldiers/builders toward those targets (free —
+// it's labour allocation, not hatching). Default split = all forager, so a run
+// that never touches assignment behaves EXACTLY like 5A.
+const JOBS = ['forager', 'soldier', 'builder'];
+
+const SOLDIER = {
+  speed: 2.2,             // faster than a forager (1.6), still < scout (3.4)
+  r: 8,                   // bigger/tougher-looking than a forager (6)
+  hp: 4,                  // soldiers take hits before dying
+  patrolRadius: 6,        // cells around the nest it patrols when idle
+  engageRadius: 8,        // cells — breaks off to fight a spider within this of itself OR the nest
+  attackRadius: 0.9,      // cells — close enough to bite a spider
+  attackDamage: 1,        // damage per bite to enemy hp (spider hp 3 -> 3 soldier hits)
+  attackCooldown: 0.5,    // seconds between a soldier's bites
+  knockback: 5,
+  bodyCol: '#8a3520', bodyDk: '#5f2414',   // darker/reddish — distinct from forager & scout
+};
+
+const BUILDER = {
+  speed: 1.7, r: 6,
+  repairRate: 6,          // nest HP/sec added while a builder repairs at the nest
+  repairRadius: 2.2,      // cells from the nest to count as "repairing"
+  bodyCol: '#5a7a3a', bodyDk: '#3f5a28',   // greenish worker tint
+};
+
+// ── PROGRESSION (Phase 6) ─────────────────────────────────────────
+// 💎 gems brought home = the progression currency. Milestones unlock in order.
+// Persisted to localStorage so unlocks survive new games and app relaunches.
+const PROGRESSION = {
+  milestones: [
+    { wins: 1, id: 'park',  label: '🌳 The Park',  desc: 'A wilder field beyond the gate — richer food, more spiders.' },
+    { wins: 2, id: 'skins', label: '🎨 Ant skins', desc: 'Choose your scout\'s colour.' },
+    { wins: 3, id: 'house', label: '🏠 The House', desc: 'Slip inside for a kitchen-floor heist. Mind the traps.' },
+  ],
+  skins: [                     // the SCOUT is hand-drawn (vector) — these recolour it
+    { name: 'Crimson',  body: '#c9542f', dark: '#8f3a1e', hi: '#e88a5a', col: '#c9542f' },
+    { name: 'Onyx',     body: '#3a3a42', dark: '#20202a', hi: '#5a5a66', col: '#3a3a42' },
+    { name: 'Emerald',  body: '#3f8a4a', dark: '#276030', hi: '#7fd07a', col: '#3f8a4a' },
+    { name: 'Sapphire', body: '#3a5ec9', dark: '#26408f', hi: '#7f9aee', col: '#3a5ec9' },
+    { name: 'Amber',    body: '#d69a2e', dark: '#a06f1e', hi: '#f0c86a', col: '#d69a2e' },
+    { name: 'Violet',   body: '#8a4ec9', dark: '#5f308f', hi: '#b98ae8', col: '#8a4ec9' },
+  ],
+};
+
+// ── PARK theme (unlock #1) — same pipeline as the backyard, wilder tuning ──
+const PARK_THEME = {
+  id: 'park',
+  ground: { base: '#3f6a33', tuftCols: ['#33592a', '#4a7a38', '#5f8f45'] },
+  counts: { food: 20, water: 10, rock: 26, twig: 18, flower: 34, tuft: 320 },
+  food:  { refill: 40, respawnSec: 20 },
+  water: { refill: 34, respawnSec: 16 },
+  pickupRadius: 0.9,
+  enemies: { type: 'spider', count: 8, respawnSec: 12 },   // more spiders, no safe zone out here
+};
+
+// ── HOUSE theme (unlock #3) — the kitchen-floor heist ─────────────
+const HOUSE_THEME = {
+  id: 'house',
+  ground: { tileA: '#cfc9b8', tileB: '#b8b2a0', tileSize: 140, baseboard: '#8a7a5e' },
+  counts: { food: 10, water: 4 },
+  food:  { refill: 50, respawnSec: 26 },     // richer crumbs in here
+  water: { refill: 34, respawnSec: 20 },
+  pickupRadius: 0.9,
+  sugar: { refill: 40, colonyBonus: 150, respawnSec: 180 },   // 🍬 the grand prize (slow respawn)
+  enemies: [ { type: 'beetle', count: 4 }, { type: 'spider', count: 2 } ],
+  enemyRespawnSec: 16,
+};
+
+// ── environmental hazards (house) ─────────────────────────────────
+const HAZARD = {
+  water: { slow: 0.45, dps: 4 },                                   // wading: heavy slow + HP drain/sec
+  zap:   { onSec: 1.1, offSec: 1.9, dmg: 18, radius: 2.4, knock: 9 },   // pulsing outlet zone (radius in cells)
+  trap:  { triggerR: 1.4, snapR: 2.0, telegraph: 0.35, dmg: 45, rearmSec: 12, knock: 11 },  // 🪤
+};
+
+// ── bug (beetle) sprite atlas ─────────────────────────────────────
+// rows: 0=brown 1=dark 2=green 3=red ; cols 0-2 = walk. Faces DOWN like the ants.
+const BUG_SPRITE = { src: 'assets/bugs_atlas.png', cell: 64, walk: [0, 1, 2], fps: 8, scale: 4.2 };
+
+// ── ant sprite atlas (pixel art) ──────────────────────────────────
+// A normalized sheet: 6 cols x 4 rows of 64px cells. Cols 0-2 = WALK,
+// 3-5 = CARRY. Rows = colour variants; each ant role maps to one row.
+// Sprites face UP in the art; the blitter rotates them to ant.angle.
+// If the image hasn't loaded, drawing falls back to the vector ants.
+const ANT_SPRITE = {
+  src: 'assets/ants_atlas.png',
+  cell: 64, cols: 6, rows: 4,
+  walk: [0, 1, 2], carry: [3, 4, 5],
+  row: { scout: 1, forager: 0, soldier: 3, builder: 2 },  // red / brown / dark / green
+  fps: 9,          // animation frames per second
+  scale: 4.6,      // draw size = ant.r * scale (keeps the role size hierarchy)
+};
 // pure helpers (no state)
 const idx = (cx, cy) => cy * COLS + cx;
 const clamp = (v, a, b) => (v < a ? a : (v > b ? b : v));

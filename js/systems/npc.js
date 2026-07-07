@@ -57,7 +57,9 @@ function drawNpcAnts(list) {
   for (const a of list) {
     const sx = w2sX(a.x), sy = w2sY(a.y);
     if (sx < -30 || sx > W + 30 || sy < -30 || sy > H + 30) continue;   // cull
-    drawMiniAnt(sx, sy, a.ang, NPC_ANTS.r, a.legT, a.pauseT > 0);
+    if (!drawAntSprite('forager', a.pauseT <= 0, false, sx, sy, a.ang, NPC_ANTS.r * ANT_SPRITE.scale, false)) {
+      drawMiniAnt(sx, sy, a.ang, NPC_ANTS.r, a.legT, a.pauseT > 0);     // vector fallback
+    }
   }
 }
 

@@ -103,6 +103,7 @@ const UndergroundScene = {
     if (ant.carry === treasure && cellOfY(ant.y) < surfaceRow && Math.abs(ant.x - home.x) < CELL * 3) {
       won = true; treasure.home = true; treasure.carried = false; ant.carry = null; ant.hasGem = false;
       treasure.x = home.x; treasure.y = home.y + 6; burstSpark(home.x, home.y + 6);
+      recordWin();                                   // 💎 progression: gems won + milestone unlocks
       banner = { text: '🏆 You brought it home!', t: 999 };
     }
 

@@ -299,39 +299,75 @@ function drawGem(sx, sy) {
 
 function drawAnt() {
   const sx = w2sX(ant.x), sy = w2sY(ant.y);
-  const s = ant.r * 1.5;
+  const s = ant.r * 1.6;
   const blink = ant.invuln > 0 && (Math.floor(t * 20) % 2 === 0);   // flicker during i-frames
-  ctx.globalAlpha = blink ? 0.4 : 1;
-  ctx.save(); ctx.translate(sx, sy); ctx.rotate(ant.angle);
-  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 2, s * 1.05, s * 0.7, 0, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#241109'; ctx.lineWidth = Math.max(1.4, s * 0.13); ctx.lineCap = 'round';
-  for (let i = -1; i <= 1; i++) {
-    const baseX = i * s * 0.42, ph = ant.legT + i * 1.5;
-    const swing = Math.sin(ph) * s * 0.30, swing2 = Math.cos(ph) * s * 0.30;
-    ctx.beginPath(); ctx.moveTo(baseX, 0); ctx.lineTo(baseX + swing, -s * 0.95); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(baseX, 0); ctx.lineTo(baseX - swing2, s * 0.95); ctx.stroke();
+  const baseA = blink ? 0.4 : 1;
+  ctx.globalAlpha = baseA;
+
+  // the SCOUT is hand-drawn (vector) so it can take any colour/style — the sprite
+  // sheet is reserved for the AI colony ants. Colour comes from the unlocked skin.
+  const sk = scoutSkin(), col = sk.body, dk = sk.dark, hi = sk.hi;
+
+  ctx.save(); ctx.translate(sx, sy); ctx.rotate(ant.angle);   // forward = +x (head)
+
+  // ground shadow
+  ctx.fillStyle = 'rgba(0,0,0,.20)';
+  ctx.beginPath(); ctx.ellipse(-s * 0.15, s * 0.05, s * 1.05, s * 0.62, 0, 0, 7); ctx.fill();
+
+  // 6 legs: three pairs off the thorax, jointed (knee), alternating gait
+  ctx.strokeStyle = dk; ctx.lineCap = 'round';
+  const legAttach = [0.16, 0.0, -0.16], legBase = [0.85, 1.45, 2.15];
+  for (let p = 0; p < 3; p++) {
+    for (let sgn = 1; sgn >= -1; sgn -= 2) {
+      const ph = ant.legT * 1.1 + p * 2.0 + (sgn > 0 ? 0 : Math.PI);
+      const ba = sgn * (legBase[p] + Math.sin(ph) * 0.16);       // little forward/back step
+      const ax = legAttach[p] * s;
+      const kx = ax + Math.cos(ba) * s * 0.66, ky = Math.sin(ba) * s * 0.66;    // knee
+      const fx = kx + Math.cos(ba + sgn * 0.5) * s * 0.72, fy = ky + Math.sin(ba + sgn * 0.5) * s * 0.72;  // foot
+      ctx.lineWidth = Math.max(1.4, s * 0.11);
+      ctx.beginPath(); ctx.moveTo(ax, 0); ctx.lineTo(kx, ky); ctx.lineTo(fx, fy); ctx.stroke();
+    }
   }
-  const col = '#c9542f', colDk = '#9c3f22';
-  ctx.fillStyle = colDk; ctx.beginPath(); ctx.ellipse(-s * 0.62, 0, s * 0.62, s * 0.5, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = col;  ctx.beginPath(); ctx.ellipse(-s * 0.62, 0, s * 0.5, s * 0.4, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = colDk; ctx.beginPath(); ctx.ellipse(-s * 0.05, 0, s * 0.32, s * 0.28, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = col;  ctx.beginPath(); ctx.ellipse(s * 0.5, 0, s * 0.36, s * 0.32, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(s * 0.55, -s * 0.12, s * 0.09, s * 0.07, 0, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#241109'; ctx.lineWidth = Math.max(1, s * 0.09);
-  const aw = Math.sin(ant.legT * 0.8) * 0.15;
-  ctx.beginPath(); ctx.moveTo(s * 0.7, -s * 0.16); ctx.lineTo(s * 1.15, -s * 0.5 + aw * s); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(s * 0.7, s * 0.16); ctx.lineTo(s * 1.15, s * 0.5 - aw * s); ctx.stroke();
-  if (digTarget) {
-    const m = Math.abs(Math.sin(t * 22)) * s * 0.16; ctx.lineWidth = Math.max(1.4, s * 0.12);
-    ctx.beginPath(); ctx.moveTo(s * 0.82, -s * 0.14); ctx.lineTo(s * 1.05, -s * 0.05 - m); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(s * 0.82, s * 0.14); ctx.lineTo(s * 1.05, s * 0.05 + m); ctx.stroke();
+
+  // a shaded segment = dark base (reads as an outline) + body fill + top-left highlight
+  const seg = (cx, cy, rx, ry) => {
+    ctx.fillStyle = dk; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 1.10, ry * 1.10, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = hi; ctx.globalAlpha = baseA * 0.5;
+    ctx.beginPath(); ctx.ellipse(cx - rx * 0.25, cy - ry * 0.32, rx * 0.5, ry * 0.42, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = baseA;
+  };
+
+  seg(-0.72 * s, 0, 0.60 * s, 0.48 * s);                        // gaster (abdomen)
+  ctx.strokeStyle = dk; ctx.lineWidth = 1;                       // faint gaster segment lines
+  ctx.beginPath(); ctx.moveTo(-1.05 * s, -0.2 * s); ctx.lineTo(-0.5 * s, -0.2 * s); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-1.05 * s, 0.2 * s); ctx.lineTo(-0.5 * s, 0.2 * s); ctx.stroke();
+  seg(-0.30 * s, 0, 0.13 * s, 0.12 * s);                        // petiole — the ant "waist"
+  seg(-0.02 * s, 0, 0.32 * s, 0.24 * s);                        // thorax
+  seg(0.58 * s, 0, 0.34 * s, 0.33 * s);                         // head
+
+  ctx.fillStyle = '#0b0b0d';                                    // compound eyes
+  for (let sgn = 1; sgn >= -1; sgn -= 2) { ctx.beginPath(); ctx.arc(0.62 * s, sgn * 0.24 * s, Math.max(1, s * 0.08), 0, 7); ctx.fill(); }
+
+  const md = digTarget ? 0.14 : 0.06;                           // mandibles (open wider when digging)
+  ctx.strokeStyle = dk; ctx.lineWidth = Math.max(2, s * 0.09);
+  for (let sgn = 1; sgn >= -1; sgn -= 2) { ctx.beginPath(); ctx.moveTo(0.88 * s, sgn * 0.12 * s); ctx.lineTo(1.08 * s, sgn * md * s); ctx.stroke(); }
+
+  const asw = Math.sin(ant.legT * 0.9) * 0.06;                  // elbowed antennae, gentle sway
+  ctx.lineWidth = Math.max(1.5, s * 0.08);
+  for (let sgn = 1; sgn >= -1; sgn -= 2) {
+    const ty = sgn * (0.52 + asw) * s;
+    ctx.beginPath(); ctx.moveTo(0.78 * s, sgn * 0.12 * s); ctx.lineTo(1.02 * s, sgn * 0.34 * s); ctx.lineTo(1.26 * s, ty); ctx.stroke();
+    ctx.fillStyle = dk; ctx.beginPath(); ctx.arc(1.26 * s, ty, Math.max(1, s * 0.06), 0, 7); ctx.fill();
   }
-  if (ant.hitFlash > 0) {                                            // white flash when hit
-    ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.ellipse(-s * 0.2, 0, s * 0.9, s * 0.6, 0, 0, 7); ctx.fill();
+
+  if (ant.hitFlash > 0) {                                       // white flash when hit
+    ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.ellipse(-s * 0.2, 0, s * 0.85, s * 0.55, 0, 0, 7); ctx.fill();
   }
   ctx.restore();
-  if (ant.carry) {
-    const bx = sx - Math.cos(ant.angle) * s * 0.7, by = sy - Math.sin(ant.angle) * s * 0.7 + Math.sin(t * 6) * 1;
+
+  if (ant.carry) {                                              // carried item rides on the gaster
+    const bx = sx - Math.cos(ant.angle) * s * 0.8, by = sy - Math.sin(ant.angle) * s * 0.8 + Math.sin(t * 6) * 1;
     if (ant.carry === treasure) drawGem(bx, by - 2);
     else { ctx.fillStyle = '#b9a68c'; ctx.beginPath(); ctx.ellipse(bx, by - 3, 6, 5, 0, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(60,44,26,.5)'; ctx.lineWidth = 1; ctx.stroke(); }
   }
@@ -463,8 +499,14 @@ function drawWin() {
   ctx.fillStyle = '#e7f6ff'; ctx.font = '600 16px -apple-system,sans-serif';
   ctx.fillText('You scouted the cavern and hauled the gem back.', W / 2, H * 0.42 + 34);
   ctx.fillStyle = '#ffd23a'; ctx.font = '700 15px -apple-system,sans-serif';
-  ctx.fillText('Deepest dig: ' + fmtDepth(maxDepthMM), W / 2, H * 0.42 + 58);
-  const bw = 190, bh = 48, bx = (W - bw) / 2, by = H * 0.42 + 80;
+  ctx.fillText('Deepest dig: ' + fmtDepth(maxDepthMM) + '   ·   💎 ' + progress.wins, W / 2, H * 0.42 + 58);
+  let by0 = H * 0.42 + 80;
+  if (progress.lastUnlock) {                        // 🔓 something new this win
+    ctx.fillStyle = '#8fffb0'; ctx.font = '800 17px -apple-system,sans-serif';
+    ctx.fillText('🔓 Unlocked: ' + progress.lastUnlock + '!', W / 2, by0 + 6);
+    by0 += 30;
+  }
+  const bw = 190, bh = 48, bx = (W - bw) / 2, by = by0;
   ctx.fillStyle = 'rgba(255,220,120,.92)'; roundRect(bx, by, bw, bh, 12); ctx.fill();
   ctx.fillStyle = '#4a2c00'; ctx.font = '800 18px -apple-system,sans-serif'; ctx.fillText('Play again', W / 2, by + 30);
   ctx.textAlign = 'start';

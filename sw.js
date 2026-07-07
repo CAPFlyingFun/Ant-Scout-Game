@@ -5,7 +5,7 @@
    network passthrough for the two live-weather APIs.
    Bump CACHE_NAME whenever you change any cached file below.
    ============================================================ */
-const CACHE_NAME = 'ant-scout-v17';
+const CACHE_NAME = 'ant-scout-v21';
 
 // All paths are RELATIVE so this works at any hosting path
 // (e.g. /ant-scout-game/) without edits.
@@ -23,6 +23,7 @@ const STATIC_ASSETS = [
   './js/core/controls.js',
   // SYSTEMS
   './js/systems/update.js',
+  './js/systems/sprites.js',
   './js/systems/weather.js',
   './js/systems/render.js',
   './js/systems/props.js',
@@ -30,12 +31,15 @@ const STATIC_ASSETS = [
   './js/systems/combat.js',
   './js/systems/colony.js',
   './js/systems/npc.js',
+  './js/systems/progression.js',
   // SCENES
   './js/scenes/manager.js',
   // MAPS
   './js/maps/world.js',
   './js/maps/underground.js',
   './js/maps/surface_backyard.js',
+  './js/maps/surface_park.js',
+  './js/maps/house.js',
   // BOOT
   './js/menu.js',
   './js/main.js',
@@ -44,7 +48,9 @@ const STATIC_ASSETS = [
   './icons/icon-maskable-192x192.png',
   './icons/icon-maskable-512x512.png',
   './icons/apple-touch-icon.png',
-  './icons/favicon-32x32.png'
+  './icons/favicon-32x32.png',
+  './assets/ants_atlas.png',
+  './assets/bugs_atlas.png'
 ];
 
 self.addEventListener('install', event => {
