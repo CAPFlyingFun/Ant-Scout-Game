@@ -278,3 +278,53 @@ live). 9E is independent and could be pulled forward if you want the combat-feel
 4. **Does the scout still auto-collect surface food** (`COLONY.scoutForageBonus`) once
    fighters retrieve autonomously, or should the player's own pickups route through the
    same stockpile/Queen choice?
+
+---
+
+## 7. Addendum — mechanics read from reference screenshots
+
+Five gameplay screenshots (Level 3) were reviewed after the plan above was written. They
+**confirm** two recommendations and **add six mechanics** the text brief didn't mention.
+
+### 7.1 Confirmed
+
+- **Authored chambers, not depth bands (§#1 option B).** The nest is clearly a *vertical
+  main shaft with horizontal branches* into discrete rooms — a Queen chamber and a storage
+  chamber are visible as carved tan pockets in dark dirt. This is exactly option B.
+  **Treat the gate-style decision as settled unless you disagree.**
+- **Queen food counter is separate from the stockpile (§#2/#3).** The HUD reads
+  `Food: 1/16` on the surface and `Food: 4/16` in the Queen's chamber — same counter,
+  and it sits *with the Queen*. That validates `colony.queenFood` being distinct from
+  `colony.food`, and confirms the reference's larva threshold is **16**.
+
+### 7.2 New mechanics visible in the screenshots
+
+| # | Observed | Our current state | Proposed |
+|---|---|---|---|
+| A | **Carry capacity with a red `MAX` flag** — an ant carrying eggs shows "MAX" once full | `f.carrying` is a **boolean** (1 item), `FORAGER.carryValue = 12` fixed | Make carrying a count: `f.load` / `FORAGER.carryCap`. Fighters that clear several drops shouldn't teleport all of it home in one trip — this is what makes retrieval *trips* matter in #2. |
+| B | **HP bars floating over surface creatures** | Enemies have `hp: 3` but **no bar**; only soldiers get damage pips (`colony.js:255`) | Add a small bar in `drawEnemies()`, mirroring the existing `drawNestHpBar()` style. Cheap, and it's the single biggest combat-readability win for #6. |
+| C | **Multiple fighters converge on one target** — two red ants attacking one pill bug | `soldierBehavior()` targets *nearest to self*, so convergence is incidental | Add mild target-sharing: prefer an enemy already engaged by another fighter. Makes autonomy (#5) read as coordinated rather than scattered. |
+| D | **Storage chamber has visible capacity slots** — empty circles + a chest | Stockpile is an abstract number | Give the granary room N drawn slots that fill as `colony.food` rises. Turns the abstract "stockpile vs Queen" choice (#2) into something you can *see*. |
+| E | **A `Take` button with an up-arrow at the storage chamber** | No storage interaction | Contextual prompt — the existing `actionPrompt()` pattern (`underground.js:135`) already does exactly this kind of proximity button. Lets the player pull food back out to hand-feed the Queen. |
+| F | **Distinct ant colours = castes** — black, red, and green ants on screen simultaneously | We have forager tan / soldier dark / builder green | Already aligned. Worker→green, Fighter→red, scout stays orange. **No new atlas rows needed**; just palette assignment. Reinforces the caste-lock recommendation (§#3) — colour only reads as caste if it's stable. |
+
+### 7.3 Deliberately NOT copying
+
+- **`Rank: 6`** — a leaderboard/monetization hook. No fit with Ant Scout's single-player
+  survival framing.
+- **`Level 3` discrete levels** — Ant Scout is continuous with map unlocks via
+  `PROGRESSION.milestones`. Gates (#1) already provide the milestone beat; adding a level
+  system on top would compete with it.
+- **The three ad placements.** Noted only because they occupy ~15% of the reference's
+  screen — our HUD budget is genuinely larger than theirs, so the gate progress bar and
+  colony readout can be more informative without crowding.
+
+### 7.4 Effect on sequencing
+
+None of these change the 9A–9F order. Fold them in as:
+- **B** (enemy HP bars) → pull into **9E**, or even ship standalone before 9A; it's
+  self-contained and improves the game immediately.
+- **A** (carry capacity) → **9A**, since it's economy plumbing.
+- **C** (target sharing) → **9E**.
+- **D, E** (storage slots + Take button) → **9B**, alongside chamber construction.
+- **F** (caste colours) → **9C**, with the caste lock.
