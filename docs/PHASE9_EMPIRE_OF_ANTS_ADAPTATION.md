@@ -191,8 +191,27 @@ writes only the `weather` / `env` / `wind` globals. It does not reference `colon
 `SurfaceScene.ants`. **Zero overlap — nothing to reconcile.**
 
 ### The bigger point: weather is the moat
-Empire of Ants has no weather. Right now Ant Scout's weather is *scenery*. Wiring these
-new systems to it makes the whole adaptation defensibly ours rather than a reskin:
+> **CORRECTED (see `REFERENCE_STUDY_ANT_GAMES.md` §6).** The claim originally written here —
+> that Empire of Ants has no weather and therefore weather is our differentiator — is **wrong
+> as stated**. Simulated weather is *table stakes* in this genre: Pocket Ants (~18M downloads)
+> ships rain, snow and a four-phase day/night cycle and already gates spawns on both (dragonfly
+> only in rain/snow; scorpion best at night); SimAnt did rain-washed pheromone trails in 1991.
+>
+> The **real, narrower, uncontested** moat is that no surveyed title drives weather from the
+> player's *actual local conditions via a live API*. Not "we have weather" — **"the sky in your
+> colony is the sky outside your window."** That moat is also *structural*: every competitor is
+> an always-online F2P economy that needs controllable pacing, and none of them can gate a spawn
+> table on each player's real forecast without losing their event calendar. They could copy it
+> technically and won't commercially.
+>
+> Two consequences: (a) **the moat is currently unexercised** — every `weather` reference outside
+> `weather.js` is a draw call or a string, and only `wind.base` touches the sim, so scheduling 9F
+> last is the riskiest call in this plan; pull the two S-effort rows forward. (b) **Live weather is
+> slow** (real rain can last days) where competitors' cycles are minutes — so couple to *rates and
+> pressure*, never make a weather state the only key to a gate.
+
+Right now Ant Scout's weather is *scenery*. Wiring these new systems to it makes the whole
+adaptation defensibly ours rather than a reskin:
 
 | Condition | Proposed effect | Which mechanic it deepens |
 |---|---|---|
@@ -221,8 +240,21 @@ healT: 0,
 deliveryMode: 'stock',  // 'stock' | 'queen'
 ```
 All of it belongs in the existing `colony` object, which already persists across scenes —
-so no new persistence layer. Add these keys to the `antscout.progress` save in
-`progression.js` (`saveProgress`/`loadProgress`).
+so no new persistence layer.
+
+> **CORRECTED.** An earlier version of this line said to add these keys to the
+> `antscout.progress` save (`progression.js:12`). **Do not.** `colony` is strictly *per-run*:
+> `resetColony()` (`colony.js:23`) wipes it, `newGame()` (`manager.js:31`) calls that, and
+> `saveProgress()` persists only `wins`/`unlocked`/`skin`. Persisting `dug`/`gates`/rank would
+> create a **second cross-run meta-progression axis** alongside the gem milestones — runs would
+> start with chambers already open, and the session framing would quietly become an idle game's
+> save file. **Persist nothing from `colony`;** let gates be a within-run arc, exactly like the gem.
+
+> **BUG THIS PLAN WOULD HAVE INTRODUCED.** `isSolid` is
+> `(cx, cy) => (!inBounds(cx, cy) ? true : grid[idx(cx, cy)] === 1)` — `js/core/engine.js:31`.
+> The proposed `grid = 2` gate rock is `!== 1`, so the ant would **walk straight through every
+> sealed gate**. Change to `>= 1` and add the matching guard to the dig check at
+> `underground.js:75` *before* writing 9B.
 
 **Config (`config.js`):** `NEST_GATES` (above), plus
 ```js
