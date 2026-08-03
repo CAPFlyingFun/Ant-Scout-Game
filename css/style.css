@@ -128,6 +128,31 @@ canvas {
 .swatch { width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); cursor: pointer; }
 .swatch.active { border-color: #ffd23a; box-shadow: 0 0 10px rgba(255,210,58,.5); }
 .swatch.disabled { opacity: .35; filter: grayscale(.6); cursor: default; }
+
+/*
+ * The species picker. Thirty entries will not fit on a phone screen beside the
+ * six colours, so it scrolls in its own box rather than pushing the Close
+ * button off the bottom of the panel — which is what a plain wrapping grid did.
+ */
+.speciesgrid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 6px; max-height: 34vh; overflow-y: auto;
+  margin: 8px 0 4px; padding: 4px; border-radius: 8px;
+  background: rgba(0,0,0,.18); -webkit-overflow-scrolling: touch;
+}
+.speciespick {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 5px 3px; border: 2px solid rgba(255,255,255,.12); border-radius: 8px;
+  background: rgba(255,255,255,.05); color: #e8e2d4; cursor: pointer;
+  font: 600 9px/1.15 system-ui, sans-serif; text-align: center;
+}
+.speciespick .chip {
+  width: 34px; height: 34px; background-repeat: no-repeat;
+  /* The sheet is 12 cells wide; showing it at 12x the chip lands one cell. */
+  background-size: 1200% auto; image-rendering: pixelated;
+}
+.speciespick.active { border-color: #ffd23a; box-shadow: 0 0 10px rgba(255,210,58,.45); }
+.speciesgrid.disabled .speciespick { opacity: .35; filter: grayscale(.6); cursor: default; }
 .locked-row { opacity: .55; }
 .mapgo { flex: 0 0 auto; width: auto; margin: 0; padding: 8px 16px; border: 0; border-radius: 9px;
   background: #e0a44a; color: #3a2400; font-size: 14px; font-weight: 700; cursor: pointer; }

@@ -10,6 +10,7 @@
 
 let antSheet = null, antSheetReady = false;
 let bugSheet = null, bugSheetReady = false;
+let speciesSheet = null, speciesSheetReady = false;
 
 // guard: `Image` only exists in the browser (not in the headless test harness)
 if (typeof Image !== 'undefined') {
@@ -21,6 +22,49 @@ if (typeof Image !== 'undefined') {
   bugSheet.onload = () => { bugSheetReady = true; };
   bugSheet.onerror = () => { bugSheetReady = false; };
   bugSheet.src = BUG_SPRITE.src;
+  speciesSheet = new Image();
+  speciesSheet.onload = () => { speciesSheetReady = true; };
+  speciesSheet.onerror = () => { speciesSheetReady = false; };
+  speciesSheet.src = SPECIES_SPRITE.src;
+}
+
+/*
+ * Draw one of the thirty hand-drawn species.
+ *
+ * `row` indexes ANT_SPECIES; `state` is 'walk' | 'carry' | 'attack' | 'idle'.
+ * Returns false if the sheet is not up yet, exactly like the others, so a slow
+ * or offline load falls through to the vector ant rather than to nothing.
+ *
+ * THE ROTATION HAS NO OFFSET, and that is the one line to be careful about.
+ * The other two sheets are drawn facing DOWN and so subtract a quarter turn;
+ * these thirty are drawn facing RIGHT, which is already the +x that `angle`
+ * means. Copying the `- Math.PI / 2` across would have every species walking
+ * sideways to its own heading — visible instantly on all thirty at once, and
+ * the sort of thing that gets blamed on the art.
+ */
+function drawSpeciesSprite(row, state, x, y, angle, sizePx, flash) {
+  if (!speciesSheetReady) return false;
+  const S = SPECIES_SPRITE;
+  const anim = S[state] || S.walk;
+  const fi = anim[Math.floor(t * S.fps) % anim.length];
+  const half = sizePx / 2;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  const prevSmooth = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(speciesSheet, fi * S.cell, row * S.cell, S.cell, S.cell,
+                -half, -half, sizePx, sizePx);
+  if (flash) {
+    ctx.globalAlpha = 0.55; ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(0, 0, half * 0.55, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+  ctx.imageSmoothingEnabled = prevSmooth;
+  ctx.restore();
+  return true;
 }
 
 // Draw an ant sprite. role: 'scout'|'forager'|'soldier'|'builder'.

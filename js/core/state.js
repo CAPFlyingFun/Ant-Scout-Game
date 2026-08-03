@@ -87,6 +87,12 @@ const progress = {
   wins: 0,                    // 💎 gems brought home (lifetime)
   unlocked: {},               // id -> true (park / skins / house)
   skin: 0,                    // index into PROGRESSION.skins (vector colour of the hand-drawn scout)
+  /*
+   * Which of the 30 hand-drawn species the scout wears, or null for the vector
+   * ant. Null rather than 0 on purpose: 0 is a real species (the Electric ant),
+   * so a default of 0 would silently change how every existing save looks.
+   */
+  species: null,
   lastUnlock: '',             // label shown on the win screen when something new unlocked
 };
 

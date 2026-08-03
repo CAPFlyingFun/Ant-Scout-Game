@@ -105,6 +105,52 @@ function refreshProgressUI() {
     });
     $('prSkinLabel').textContent = open ? 'Scout colour' : 'Scout colour · 🔒 win 2 💎';
   }
+  /*
+   * The thirty species, behind the same unlock as the colours — it is one
+   * decision about how the scout looks, and gating the two separately would put
+   * two pickers on screen at two different times for it.
+   *
+   * "Vector" comes first and is not a species: it is how the scout has always
+   * looked, and someone who tries the sprites has to be able to get back
+   * without clearing their save.
+   */
+  const sp = $('prSpecies');
+  if (sp && typeof ANT_SPECIES !== 'undefined') {
+    const open = isUnlocked('skins');
+    sp.innerHTML = '';
+    sp.classList.toggle('disabled', !open);
+    const cell = 100 / (SPECIES_SPRITE.cols - 1);   // background-position steps
+    const add = (label, index, row) => {
+      const b = document.createElement('button');
+      b.className = 'speciespick' + (progress.species === index ? ' active' : '');
+      b.title = label;
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      if (row != null) {
+        chip.style.backgroundImage = `url(${SPECIES_SPRITE.src})`;
+        // Column 0 (the first walk frame) of this species' row.
+        chip.style.backgroundPosition = `0% ${row * (100 / (SPECIES_SPRITE.rows - 1))}%`;
+      } else {
+        chip.textContent = '🐜';
+        chip.style.fontSize = '22px';
+        chip.style.lineHeight = '34px';
+      }
+      b.appendChild(chip);
+      const name = document.createElement('span');
+      name.textContent = label;
+      b.appendChild(name);
+      b.onclick = () => {
+        if (!open) return;
+        progress.species = index;
+        saveProgress();
+        refreshProgressUI();
+      };
+      sp.appendChild(b);
+    };
+    add('Classic', null, null);
+    ANT_SPECIES.forEach((e, i) => add(e.name, i, e.row));
+    $('prSpeciesLabel').textContent = open ? 'Species' : 'Species · 🔒 win 2 💎';
+  }
 }
 
 function setActive(containerId, attr, val) {

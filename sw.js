@@ -5,7 +5,7 @@
    network passthrough for the two live-weather APIs.
    Bump CACHE_NAME whenever you change any cached file below.
    ============================================================ */
-const CACHE_NAME = 'ant-scout-v22';
+const CACHE_NAME = 'ant-scout-v23';
 
 // All paths are RELATIVE so this works at any hosting path
 // (e.g. /ant-scout-game/) without edits.
@@ -49,7 +49,9 @@ const STATIC_ASSETS = [
   './icons/icon-maskable-512x512.png',
   './icons/apple-touch-icon.png',
   './icons/favicon-32x32.png',
+  './js/core/species_atlas.js',
   './assets/ants_atlas.png',
+  './assets/ants_species_atlas.png',
   './assets/bugs_atlas.png'
 ];
 

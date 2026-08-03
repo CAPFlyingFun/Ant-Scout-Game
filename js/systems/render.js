@@ -304,6 +304,39 @@ function drawAnt() {
   const baseA = blink ? 0.4 : 1;
   ctx.globalAlpha = baseA;
 
+  /*
+   * A chosen species wins over the vector ant.
+   *
+   * The shadow is drawn HERE rather than left to the sprite, because the sheet
+   * has none — the art is a clean cut-out. Without it a species scout floats
+   * over the ground while every other ant in the game sits on it, which reads
+   * as the sprite being the wrong size rather than as a missing shadow.
+   *
+   * Falls through to the vector ant whenever the sheet is not up: offline first
+   * load, slow connection, or a save pointing at a species that no longer
+   * exists. The scout is never invisible.
+   */
+  const speciesRow = scoutSpeciesRow();
+  if (speciesRow != null) {
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(ant.angle);
+    ctx.fillStyle = 'rgba(0,0,0,.20)';
+    ctx.beginPath(); ctx.ellipse(-s * 0.15, s * 0.05, s * 1.05, s * 0.62, 0, 0, 7); ctx.fill();
+    ctx.restore();
+    /*
+     * Read the state off the ant that exists, not off one I assumed. There is
+     * no `ant.carrying` or `ant.moving`: the load is `ant.carry` (null when
+     * empty) and movement has to come from the velocity, since nothing records
+     * a moving flag. Both of my first guesses were undefined, which is silently
+     * falsy — every ant would have walked, forever, and looked almost right.
+     */
+    const speed = Math.hypot(ant.vx, ant.vy);
+    const state = ant.carry ? 'carry' : (speed > 4 ? 'walk' : 'idle');
+    if (drawSpeciesSprite(speciesRow, state, sx, sy, ant.angle, s * 3.4, blink)) {
+      ctx.globalAlpha = 1;
+      return;
+    }
+  }
+
   // the SCOUT is hand-drawn (vector) so it can take any colour/style — the sprite
   // sheet is reserved for the AI colony ants. Colour comes from the unlocked skin.
   const sk = scoutSkin(), col = sk.body, dk = sk.dark, hi = sk.hi;

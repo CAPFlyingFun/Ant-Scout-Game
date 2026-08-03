@@ -10,7 +10,8 @@
 
 function saveProgress() {
   try { localStorage.setItem('antscout.progress', JSON.stringify({
-    wins: progress.wins, unlocked: progress.unlocked, skin: progress.skin })); } catch (e) {}
+    wins: progress.wins, unlocked: progress.unlocked, skin: progress.skin,
+    species: progress.species })); } catch (e) {}
 }
 
 function loadProgress() {
@@ -20,6 +21,11 @@ function loadProgress() {
       progress.wins = s.wins | 0;
       progress.unlocked = s.unlocked || {};
       progress.skin = (s.skin != null) ? Math.min(PROGRESSION.skins.length - 1, Math.max(0, s.skin | 0)) : 0;
+      // Clamped against the table that exists NOW. A save written when there
+      // were thirty species must not index row 30 if the sheet is ever rebuilt
+      // with fewer, which would draw a blank ant with no error anywhere.
+      progress.species = (s.species != null && ANT_SPECIES[s.species | 0])
+        ? (s.species | 0) : null;
     }
   } catch (e) {}
   applyMilestones(false);   // reconcile unlocks with the wins count (no banners)
@@ -27,6 +33,19 @@ function loadProgress() {
 
 function isUnlocked(id) { return !!progress.unlocked[id]; }
 function scoutSkinRow() { return ANT_SPRITE.row.scout; }                 // (legacy; scout is vector now)
+/*
+ * The species row the scout is wearing, or null for the vector ant.
+ *
+ * Gated behind the same `skins` milestone as the colours — it is the same
+ * choice, made from a longer list, and unlocking it separately would mean two
+ * pickers appearing at two different times for one decision.
+ */
+function scoutSpeciesRow() {
+  if (!isUnlocked('skins') || progress.species == null) return null;
+  const entry = ANT_SPECIES[progress.species];
+  return entry ? entry.row : null;
+}
+
 function scoutSkin() {                                                    // vector palette for the hand-drawn scout
   const i = isUnlocked('skins') ? progress.skin : 0;
   return PROGRESSION.skins[i] || PROGRESSION.skins[0];
